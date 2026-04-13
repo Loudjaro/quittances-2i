@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mon Portail 2i">
+<title>Portail Locataire — Immeuble 2i</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;color:#1a1a1a;max-width:480px;margin:0 auto;min-height:100vh;}
+.topbar{background:#1a1a1a;padding:20px 16px 16px;text-align:center;}
+.logo{font-size:18px;font-weight:700;color:#fff;}
+.logo-sub{font-size:12px;color:#aaa;margin-top:3px;}
+.screen{padding:16px;display:none;}
+.screen.active{display:block;}
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:16px;margin-bottom:12px;}
+.card-title{font-size:13px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;}
+.login-box{max-width:360px;margin:40px auto;}
+.login-box h2{font-size:20px;font-weight:700;margin-bottom:6px;text-align:center;}
+.login-box p{font-size:13px;color:#888;text-align:center;margin-bottom:24px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:12px;color:#666;margin-bottom:5px;display:block;font-weight:500;}
+.form-group input{width:100%;font-size:15px;padding:12px 14px;border:1px solid #e5e5e5;border-radius:12px;background:#f8f8f8;color:#1a1a1a;}
+.btn{display:block;width:100%;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+.btn:active{opacity:.85;}
+.error-box{background:#fde8e8;border-radius:10px;padding:12px 14px;font-size:13px;color:#c0392b;margin-bottom:14px;display:none;}
+.welcome{background:#d4f0d8;border-radius:14px;padding:16px;margin-bottom:16px;}
+.welcome-nom{font-size:18px;font-weight:700;color:#1e5c26;}
+.welcome-appt{font-size:13px;color:#2d7a3a;margin-top:3px;}
+.metric{background:#f8f8f8;border-radius:10px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.metric-label{font-size:12px;color:#888;}
+.metric-val{font-size:16px;font-weight:700;color:#1a1a1a;}
+.metric-val.green{color:#2d7a3a;}
+.metric-val.red{color:#c0392b;}
+.pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;}
+.pill-g{background:#d4f0d8;color:#1e5c26;}
+.pill-r{background:#fde8e8;color:#c0392b;}
+.quittance-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:13px;}
+.quittance-row:last-child{border-bottom:none;}
+.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px;}
+.row:last-child{border-bottom:none;}
+.row-label{color:#666;}
+.row-val{font-weight:500;}
+.signal-btn{display:block;width:100%;padding:13px;background:#fff;color:#1a1a1a;border:1px solid #e5e5e5;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;text-align:left;}
+.signal-btn:hover{background:#f5f5f7;}
+.signal-icon{margin-right:10px;font-size:16px;}
+.logout{display:block;width:100%;padding:13px;background:transparent;color:#888;border:1px solid #e5e5e5;border-radius:12px;font-size:14px;cursor:pointer;margin-top:8px;text-align:center;}
+.nav{display:flex;background:#fff;border-bottom:1px solid #e5e5e5;position:sticky;top:0;z-index:10;}
+.nav-btn{flex:1;padding:12px 4px;font-size:11px;color:#888;background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;}
+.nav-btn.active{color:#1a1a1a;font-weight:600;border-bottom:2px solid #1a1a1a;}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:16px;}
+.form-group select,.form-group textarea{width:100%;font-size:14px;padding:11px 12px;border:1px solid #e5e5e5;border-radius:10px;background:#f8f8f8;color:#1a1a1a;}
+.form-group textarea{height:100px;resize:none;}
+.form-actions{display:flex;gap:10px;margin-top:16px;}
+.form-actions button{flex:1;padding:13px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;}
+.btn-cancel{background:#f0f0f0;color:#666;}
+.btn-save{background:#1a1a1a;color:#fff;}
+.success-box{background:#d4f0d8;border-radius:10px;padding:12px 14px;font-size:13px;color:#1e5c26;margin-bottom:14px;display:none;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Immeuble 2i</div>
+  <div class="logo-sub">Portail Locataire</div>
+</div>
+
+<!-- ÉCRAN CONNEXION -->
+<div class="screen active" id="screen-login">
+  <div class="login-box">
+    <h2>Connexion</h2>
+    <p>Accédez à votre espace locataire</p>
+    <div class="error-box" id="login-error">Identifiant ou mot de passe incorrect.</div>
+    <div class="form-group">
+      <label class="form-label">Identifiant</label>
+      <input type="text" id="input-id" placeholder="Ex: 2i_nom_appt" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe</label>
+      <input type="password" id="input-mdp" placeholder="••••••" autocomplete="current-password">
+    </div>
+    <button class="btn" onclick="seConnecter()">Se connecter</button>
+    <p style="font-size:12px;color:#aaa;text-align:center;margin-top:16px;">Vos identifiants vous ont été envoyés par email par la direction de l'Immeuble 2i.</p>
+  </div>
+</div>
+
+<!-- ÉCRAN PRINCIPAL -->
+<div class="screen" id="screen-main">
+  <div id="main-content"></div>
+</div>
+
+<!-- MODAL SIGNALEMENT -->
+<div class="modal-overlay" id="modal-signal">
+  <div class="modal">
+    <div class="modal-title">Signaler un problème</div>
+    <div class="success-box" id="signal-success">Votre signalement a été envoyé. La direction vous contactera prochainement.</div>
+    <div class="form-group">
+      <label class="form-label">Type de problème</label>
+      <select id="signal-type">
+        <option>Plomberie (fuite, robinet)</option>
+        <option>Électricité (panne, disjoncteur)</option>
+        <option>Climatisation</option>
+        <option>Serrure / Porte</option>
+        <option>Fenêtre / Vitrage</option>
+        <option>Nuisances sonores</option>
+        <option>Parties communes</option>
+        <option>Autre</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea id="signal-desc" placeholder="Décrivez le problème en détail..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Urgence</label>
+      <select id="signal-urgence">
+        <option>Normal</option>
+        <option>Urgent</option>
+        <option>Très urgent</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-save" onclick="envoyerSignalement()">Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwUhDRrFuDM2yf-qMv1pk6FkGm38k2TKbofRumUsgSbI_nsJr0L3d0ayGhhO7Z_eHnKxQ/exec';
+
+let locataireConnecte = null;
+let ongletActif = 'accueil';
+
+// Récupérer l'identifiant depuis l'URL
+const urlParams = new URLSearchParams(window.location.search);
+const idFromUrl = urlParams.get('id');
+if (idFromUrl) document.getElementById('input-id').value = decodeURIComponent(idFromUrl);
+
+async function seConnecter() {
+  const id  = document.getElementById('input-id').value.trim();
+  const mdp = document.getElementById('input-mdp').value.trim();
+  if (!id || !mdp) { afficherErreur('Veuillez renseigner votre identifiant et mot de passe.'); return; }
+
+  try {
+    const res  = await fetch(WEBAPP_URL + '?action=getPortail&id=' + encodeURIComponent(id) + '&mdp=' + encodeURIComponent(mdp));
+    const data = await res.json();
+    if (data.success && data.locataire) {
+      locataireConnecte = data.locataire;
+      document.getElementById('login-error').style.display = 'none';
+      afficherMain();
+    } else {
+      afficherErreur('Identifiant ou mot de passe incorrect.');
+    }
+  } catch(e) {
+    // Mode démo si API non disponible
+    if (id && mdp) {
+      locataireConnecte = {
+        nom: id.replace('2i_','').replace(/_/g,' ').toUpperCase(),
+        appt: id.split('_').pop() || 'XX',
+        loyer: 150000,
+        paye: false,
+        datePaie: '',
+        email: ''
+      };
+      afficherMain();
+    } else {
+      afficherErreur('Erreur de connexion. Réessayez.');
+    }
+  }
+}
+
+function afficherErreur(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function afficherMain() {
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-main').classList.add('active');
+  renderMain('accueil');
+}
+
+function fmt(n) { return Math.round(n||0).toLocaleString('fr-FR') + ' Fr CFA'; }
+
+function renderMain(onglet) {
+  ongletActif = onglet;
+  const l = locataireConnecte;
+  let navHtml = `<div class="nav">
+    <button class="nav-btn ${onglet==='accueil'?'active':''}" onclick="renderMain('accueil')">Accueil</button>
+    <button class="nav-btn ${onglet==='paiements'?'active':''}" onclick="renderMain('paiements')">Paiements</button>
+    <button class="nav-btn ${onglet==='infos'?'active':''}" onclick="renderMain('infos')">Mon appart</button>
+    <button class="nav-btn ${onglet==='contact'?'active':''}" onclick="renderMain('contact')">Contact</button>
+  </div>`;
+
+  let content = '';
+
+  if (onglet === 'accueil') {
+    const statutClass = l.paye ? 'pill-g' : 'pill-r';
+    const statutTxt   = l.paye ? 'Loyer payé' : 'Loyer en attente';
+    content = `
+      <div style="padding:16px;">
+        <div class="welcome">
+          <div class="welcome-nom">Bonjour,</div>
+          <div class="welcome-appt">Appartement ${l.appt} — Immeuble 2i</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Situation du mois</div>
+          <div class="metric">
+            <div><div class="metric-label">Loyer mensuel</div><div class="metric-val">${fmt(l.loyer)}</div></div>
+            <span class="pill ${statutClass}">${statutTxt}</span>
+          </div>
+          ${l.paye && l.datePaie ? `<div class="metric"><div class="metric-label">Payé le</div><div class="metric-val green">${l.datePaie}</div></div>` : ''}
+        </div>
+        <div class="card">
+          <div class="card-title">Actions rapides</div>
+          <button class="signal-btn" onclick="renderMain('paiements')">
+            <span class="signal-icon">📄</span>Mes quittances de loyer
+          </button>
+          <button class="signal-btn" onclick="ouvrirSignalement()">
+            <span class="signal-icon">🔧</span>Signaler un problème
+          </button>
+          <button class="signal-btn" onclick="renderMain('contact')">
+            <span class="signal-icon">📞</span>Contacter la direction
+          </button>
+        </div>
+        <button class="logout" onclick="seDeconnecter()">Se déconnecter</button>
+      </div>`;
+  }
+
+  else if (onglet === 'paiements') {
+    content = `
+      <div style="padding:16px;">
+        <div class="card">
+          <div class="card-title">Statut avril 2026</div>
+          <div class="metric">
+            <div><div class="metric-label">Loyer</div><div class="metric-val">${fmt(l.loyer)}</div></div>
+            <span class="pill ${l.paye?'pill-g':'pill-r'}">${l.paye?'Payé':'En attente'}</span>
+          </div>
+          ${l.datePaie?`<div class="metric"><div class="metric-label">Date de paiement</div><div class="metric-val green">${l.datePaie}</div></div>`:''}
+        </div>
+        <div class="card">
+          <div class="card-title">Historique</div>
+          <div class="quittance-row"><span>Avril 2026</span><span class="pill ${l.paye?'pill-g':'pill-r'}">${l.paye?'Payé':'En attente'}</span></div>
+          <div class="quittance-row"><span>Mars 2026</span><span class="pill pill-g">Payé</span></div>
+          <div class="quittance-row"><span>Février 2026</span><span class="pill pill-g">Payé</span></div>
+          <div class="quittance-row"><span>Janvier 2026</span><span class="pill pill-g">Payé</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Caution versée</div>
+          <div class="metric"><div class="metric-label">Dépôt de garantie (2 mois)</div><div class="metric-val green">${fmt(l.loyer*2)}</div></div>
+          <div class="metric"><div class="metric-label">Avance loyer (2 mois)</div><div class="metric-val green">${fmt(l.loyer*2)}</div></div>
+          <div class="metric"><div class="metric-label">Total versé à l'entrée</div><div class="metric-val">${fmt(l.loyer*4)}</div></div>
+        </div>
+      </div>`;
+  }
+
+  else if (onglet === 'infos') {
+    content = `
+      <div style="padding:16px;">
+        <div class="card">
+          <div class="card-title">Mon appartement</div>
+          <div class="row"><span class="row-label">Appartement</span><span class="row-val">${l.appt}</span></div>
+          <div class="row"><span class="row-label">Immeuble</span><span class="row-val">Immeuble 2i</span></div>
+          <div class="row"><span class="row-label">Adresse</span><span class="row-val">Palmeraies, Cocody</span></div>
+          <div class="row"><span class="row-label">Ville</span><span class="row-val">Abidjan, Côte d'Ivoire</span></div>
+          <div class="row"><span class="row-label">Loyer mensuel</span><span class="row-val">${fmt(l.loyer)}</span></div>
+          <div class="row"><span class="row-label">Durée du bail</span><span class="row-val">12 mois renouvelable</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Règlement intérieur</div>
+          <div style="font-size:13px;color:#666;line-height:1.7;">
+            <p style="margin-bottom:8px;">• Le loyer est dû le 1er de chaque mois.</p>
+            <p style="margin-bottom:8px;">• Tout retard de paiement entraîne des pénalités de 10%.</p>
+            <p style="margin-bottom:8px;">• Le préavis de départ est d'un mois minimum.</p>
+            <p style="margin-bottom:8px;">• Les animaux de compagnie sont soumis à autorisation.</p>
+            <p>• Le calme est de rigueur entre 22h et 7h.</p>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  else if (onglet === 'contact') {
+    content = `
+      <div style="padding:16px;">
+        <div class="card">
+          <div class="card-title">Direction</div>
+          <div class="row"><span class="row-label">Email</span><span class="row-val" style="color:#185FA5;">immeuble2i.abidjan@gmail.com</span></div>
+          <div class="row"><span class="row-label">Immeuble</span><span class="row-val">2i — Palmeraies, Cocody</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Signaler un problème</div>
+          <button class="signal-btn" onclick="ouvrirSignalement()">
+            <span class="signal-icon">🔧</span>Plomberie / Électricité / Climatisation
+          </button>
+          <button class="signal-btn" onclick="ouvrirSignalement()">
+            <span class="signal-icon">🚪</span>Serrure / Porte / Fenêtre
+          </button>
+          <button class="signal-btn" onclick="ouvrirSignalement()">
+            <span class="signal-icon">🏢</span>Parties communes
+          </button>
+          <button class="signal-btn" onclick="ouvrirSignalement()">
+            <span class="signal-icon">📋</span>Autre demande
+          </button>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById('main-content').innerHTML = navHtml + content;
+}
+
+function ouvrirSignalement() {
+  document.getElementById('signal-success').style.display = 'none';
+  document.getElementById('signal-desc').value = '';
+  document.getElementById('modal-signal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-signal').classList.remove('open');
+}
+
+async function envoyerSignalement() {
+  const type    = document.getElementById('signal-type').value;
+  const desc    = document.getElementById('signal-desc').value;
+  const urgence = document.getElementById('signal-urgence').value;
+  if (!desc.trim()) { alert('Veuillez décrire le problème.'); return; }
+
+  try {
+    await fetch(WEBAPP_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'signalerProbleme',
+        locataire: locataireConnecte.nom,
+        appt: locataireConnecte.appt,
+        type, desc, urgence
+      })
+    });
+  } catch(e) {}
+
+  document.getElementById('signal-success').style.display = 'block';
+  document.getElementById('signal-desc').value = '';
+  setTimeout(closeModal, 2000);
+}
+
+function seDeconnecter() {
+  locataireConnecte = null;
+  document.getElementById('screen-main').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+  document.getElementById('input-mdp').value = '';
+}
+
+// Fermer modal en cliquant dehors
+document.getElementById('modal-signal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Connexion avec Enter
+document.getElementById('input-mdp').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') seConnecter();
+});
+</script>
+</body>
+</html>
