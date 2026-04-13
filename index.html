@@ -3,184 +3,152 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Immeuble 2i">
 <title>Immeuble 2i</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;color:#1a1a1a;max-width:480px;margin:0 auto;min-height:100vh;}
-.topbar{background:#fff;padding:16px 16px 12px;border-bottom:1px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
-.appname{font-size:17px;font-weight:600;}
-.sync-info{font-size:11px;color:#888;margin-top:2px;}
-.sync-btn{font-size:12px;background:#f0f0f0;padding:6px 14px;border-radius:99px;border:none;cursor:pointer;font-weight:500;}
-.nav{display:flex;background:#fff;border-bottom:1px solid #e5e5e5;}
-.nav-btn{flex:1;padding:12px 4px;font-size:11px;color:#888;background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
-.nav-btn.active{color:#1a1a1a;font-weight:600;border-bottom:2px solid #1a1a1a;}
+.topbar{background:#1a1a1a;padding:24px 16px 18px;text-align:center;}
+.logo{font-size:20px;font-weight:700;color:#fff;}
+.logo-sub{font-size:12px;color:#aaa;margin-top:4px;}
 .screen{padding:16px;display:none;}
 .screen.active{display:block;}
-.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-.metric{background:#fff;border-radius:12px;padding:14px;border:1px solid #e5e5e5;}
+
+/* LOGIN */
+.login-box{max-width:360px;margin:40px auto;}
+.login-box h2{font-size:22px;font-weight:700;margin-bottom:6px;text-align:center;}
+.login-box p{font-size:13px;color:#888;text-align:center;margin-bottom:28px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:12px;color:#666;margin-bottom:5px;display:block;font-weight:500;}
+.form-group input,.form-group select,.form-group textarea{width:100%;font-size:15px;padding:12px 14px;border:1px solid #e5e5e5;border-radius:12px;background:#f8f8f8;color:#1a1a1a;}
+.form-group textarea{height:100px;resize:none;}
+.btn{display:block;width:100%;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;}
+.btn:active{opacity:.85;}
+.btn-outline{display:block;width:100%;padding:12px 14px;background:#fff;color:#1a1a1a;border:1px solid #e5e5e5;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:10px;text-align:left;}
+.error-box{background:#fde8e8;border-radius:10px;padding:12px 14px;font-size:13px;color:#c0392b;margin-bottom:14px;display:none;}
+.success-box{background:#d4f0d8;border-radius:10px;padding:12px 14px;font-size:13px;color:#1e5c26;margin-bottom:14px;display:none;}
+
+/* NAV */
+.nav{display:flex;background:#fff;border-bottom:1px solid #e5e5e5;position:sticky;top:0;z-index:10;}
+.nav-btn{flex:1;padding:12px 4px;font-size:11px;color:#888;background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.nav-btn.active{color:#1a1a1a;font-weight:600;border-bottom:2px solid #1a1a1a;}
+
+/* CARDS */
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:14px;margin-bottom:10px;}
+.card-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.metric{background:#f8f8f8;border-radius:10px;padding:12px;}
 .metric.full{grid-column:1/-1;}
 .metric-label{font-size:11px;color:#888;margin-bottom:4px;}
-.metric-val{font-size:22px;font-weight:600;}
+.metric-val{font-size:20px;font-weight:600;}
 .metric-val.green{color:#2d7a3a;}
 .metric-val.red{color:#c0392b;}
-.metric-sub{font-size:11px;color:#888;margin-top:2px;}
-.stitle{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
-.prog-bg{background:#e5e5e5;border-radius:99px;height:7px;margin-bottom:16px;}
-.prog-fill{height:7px;border-radius:99px;background:#2d7a3a;transition:width .4s;}
-.card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:14px;margin-bottom:10px;}
-.loc-card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
-.loc-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
-.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;}
-.av-g{background:#d4f0d8;color:#1e5c26;}
-.av-r{background:#fde8e8;color:#c0392b;}
-.av-a{background:#fef3e2;color:#a05c00;}
-.loc-nom{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.loc-sub{font-size:11px;color:#888;margin-top:2px;}
-.pill{font-size:10px;font-weight:600;padding:4px 10px;border-radius:99px;flex-shrink:0;margin-left:8px;border:none;cursor:pointer;}
-.pill-g{background:#d4f0d8;color:#1e5c26;}
-.pill-r{background:#fde8e8;color:#c0392b;}
-.pill-a{background:#fef3e2;color:#a05c00;}
-.btn-primary{display:block;width:100%;padding:13px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:14px;}
-.btn-success{padding:8px 14px;background:#d4f0d8;color:#1e5c26;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;}
-.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:14px;}
+.metric-sub{font-size:10px;color:#888;margin-top:2px;}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px;}
 .row:last-child{border-bottom:none;}
-.row.total{font-weight:600;padding-top:12px;margin-top:4px;border-top:1px solid #e5e5e5;border-bottom:none;}
+.row.total{font-weight:600;}
 .row-label{color:#666;}
 .row-val{font-weight:500;}
 .row-val.pos{color:#2d7a3a;}
 .row-val.neg{color:#c0392b;}
-.loading-box{text-align:center;padding:50px 20px;color:#888;font-size:14px;}
-.spinner{width:32px;height:32px;border:3px solid #e5e5e5;border-top:3px solid #1a1a1a;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+.pill{font-size:10px;font-weight:600;padding:4px 10px;border-radius:99px;border:none;cursor:pointer;}
+.pill-g{background:#d4f0d8;color:#1e5c26;}
+.pill-r{background:#fde8e8;color:#c0392b;}
+.pill-a{background:#fef3e2;color:#a05c00;}
+.prog-bg{background:#e5e5e5;border-radius:99px;height:7px;margin-bottom:14px;}
+.prog-fill{height:7px;border-radius:99px;background:#2d7a3a;transition:width .4s;}
+.loc-card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.loc-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}
+.av-g{background:#d4f0d8;color:#1e5c26;}
+.av-r{background:#fde8e8;color:#c0392b;}
+.av-a{background:#fef3e2;color:#a05c00;}
+.loc-nom{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.loc-sub{font-size:11px;color:#888;margin-top:1px;}
+.stitle{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+.loading-box{text-align:center;padding:40px 20px;color:#888;font-size:14px;}
+.spinner{width:28px;height:28px;border:3px solid #e5e5e5;border-top:3px solid #1a1a1a;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;}
+.spinner-inline{display:inline-block;width:12px;height:12px;border:2px solid #fff;border-top:2px solid transparent;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.alert-box{background:#fef3e2;border-radius:12px;padding:12px 14px;font-size:13px;color:#a05c00;margin-top:4px;line-height:1.5;}
-.success-box{background:#d4f0d8;border-radius:12px;padding:12px 14px;font-size:13px;color:#1e5c26;margin-bottom:14px;}
-.error-box{background:#fde8e8;border-radius:12px;padding:12px 14px;font-size:13px;color:#c0392b;margin-bottom:14px;}
+.alert-box{background:#fef3e2;border-radius:12px;padding:12px 14px;font-size:13px;color:#a05c00;margin-top:4px;}
+.tab-toggle{display:flex;background:#f0f0f0;border-radius:10px;padding:3px;margin-bottom:14px;}
+.tab-toggle button{flex:1;padding:7px;font-size:12px;border:none;border-radius:8px;cursor:pointer;background:transparent;color:#888;}
+.tab-toggle button.active{background:#fff;color:#1a1a1a;font-weight:600;}
+.travail-card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:14px;margin-bottom:8px;}
+.artisan-card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;}
+.artisan-av{width:40px;height:40px;border-radius:50%;background:#E6F1FB;color:#0C447C;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;}
+.dl-btn{padding:8px 14px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;}
+.dl-btn:disabled{background:#ccc;cursor:default;}
+.quittance-row{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.logout{display:block;width:100%;padding:12px;background:transparent;color:#888;border:1px solid #e5e5e5;border-radius:12px;font-size:13px;cursor:pointer;margin-top:8px;text-align:center;}
+.welcome{background:#1a1a1a;border-radius:14px;padding:16px;margin-bottom:14px;}
+.welcome-nom{font-size:17px;font-weight:700;color:#fff;}
+.welcome-sub{font-size:12px;color:#aaa;margin-top:3px;}
+.badge-proprio{background:#d4f0d8;color:#1e5c26;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;display:inline-block;margin-top:6px;}
+.badge-locataire{background:#E6F1FB;color:#0C447C;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;display:inline-block;margin-top:6px;}
 
 /* MODAL */
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:100;align-items:flex-end;}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-end;}
 .modal-overlay.open{display:flex;}
 .modal{background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-height:90vh;overflow-y:auto;}
-.modal-title{font-size:17px;font-weight:600;margin-bottom:20px;}
-.form-group{margin-bottom:14px;}
-.form-label{font-size:12px;color:#666;margin-bottom:5px;display:block;font-weight:500;}
-.form-group input,.form-group select,.form-group textarea{width:100%;font-size:14px;padding:11px 12px;border:1px solid #e5e5e5;border-radius:10px;background:#f8f8f8;color:#1a1a1a;-webkit-appearance:none;}
-.form-group textarea{height:80px;resize:none;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.form-actions{display:flex;gap:10px;margin-top:20px;}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:16px;}
+.form-actions{display:flex;gap:10px;margin-top:16px;}
 .form-actions button{flex:1;padding:13px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;}
 .btn-cancel{background:#f0f0f0;color:#666;}
 .btn-save{background:#1a1a1a;color:#fff;}
-
-/* TRAVAUX */
-.travail-card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:14px;margin-bottom:8px;}
-.travail-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
-.travail-title{font-size:14px;font-weight:500;flex:1;}
-.travail-meta{font-size:11px;color:#888;margin-top:3px;}
-.travail-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid #f0f0f0;}
-.cat-tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;}
-
-/* ARTISANS */
-.artisan-card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;}
-.artisan-av{width:42px;height:42px;border-radius:50%;background:#E6F1FB;color:#0C447C;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0;}
-.artisan-nom{font-size:14px;font-weight:500;}
-.artisan-meta{font-size:11px;color:#888;margin-top:2px;}
-.artisan-tel{font-size:12px;color:#185FA5;margin-top:3px;}
-.stars{color:#BA7517;font-size:12px;}
-
-.tab-toggle{display:flex;background:#f0f0f0;border-radius:10px;padding:3px;margin-bottom:16px;}
-.tab-toggle button{flex:1;padding:7px;font-size:12px;font-weight:500;border:none;border-radius:8px;cursor:pointer;background:transparent;color:#888;}
-.tab-toggle button.active{background:#fff;color:#1a1a1a;font-weight:600;}
+.btn-success{padding:8px 14px;background:#d4f0d8;color:#1e5c26;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div>
-    <div class="appname">Immeuble 2i</div>
-    <div class="sync-info" id="sync-info">Chargement...</div>
+  <div class="logo">Immeuble 2i</div>
+  <div class="logo-sub" id="topbar-sub">Palmeraies, Cocody / Abidjan</div>
+</div>
+
+<!-- CONNEXION -->
+<div class="screen active" id="screen-login">
+  <div class="login-box">
+    <h2>Connexion</h2>
+    <p>Propriétaires et locataires</p>
+    <div class="error-box" id="login-error">Identifiant ou mot de passe incorrect.</div>
+    <div class="form-group">
+      <label class="form-label">Identifiant</label>
+      <input type="text" id="input-id" placeholder="Votre identifiant" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe</label>
+      <input type="password" id="input-mdp" placeholder="••••••" autocomplete="current-password">
+    </div>
+    <button class="btn" onclick="seConnecter()">Se connecter</button>
+    <p style="font-size:12px;color:#aaa;text-align:center;margin-top:16px;">Vos identifiants vous ont été communiqués par la direction.</p>
   </div>
-  <button class="sync-btn" onclick="chargerTout()">Actualiser</button>
 </div>
 
-<div class="nav">
-  <button class="nav-btn active" onclick="showTab('paiements',this)">Paiements</button>
-  <button class="nav-btn" onclick="showTab('finances',this)">Finances</button>
-  <button class="nav-btn" onclick="showTab('travaux',this)">Travaux</button>
-  <button class="nav-btn" onclick="showTab('artisans',this)">Artisans</button>
+<!-- INTERFACE PROPRIÉTAIRE -->
+<div class="screen" id="screen-proprio">
+  <div id="proprio-content"></div>
 </div>
 
-<div class="screen active" id="tab-paiements">
-  <div id="paiements-content"><div class="loading-box"><div class="spinner"></div>Connexion...</div></div>
-</div>
-<div class="screen" id="tab-finances">
-  <div id="finances-content"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>
-</div>
-<div class="screen" id="tab-travaux">
-  <div id="travaux-content"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>
-</div>
-<div class="screen" id="tab-artisans">
-  <div id="artisans-content"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>
+<!-- INTERFACE LOCATAIRE -->
+<div class="screen" id="screen-locataire">
+  <div id="locataire-content"></div>
 </div>
 
-<!-- MODAL TRAVAIL -->
+<!-- MODALS -->
 <div class="modal-overlay" id="modal-travail">
   <div class="modal">
-    <div class="modal-title" id="modal-travail-title">Nouveau travail</div>
-    <div class="form-group">
-      <label class="form-label">Appartement</label>
-      <select id="t-appt">
-        <option>Espaces communs</option>
-        <option>M1</option><option>M2</option><option>M3</option><option>M4</option>
-        <option>10</option><option>11</option><option>12</option>
-        <option>20</option><option>21</option><option>30</option><option>31</option>
-        <option>14</option><option>V1</option><option>22</option>
-        <option>24</option><option>V31</option><option>VR</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Catégorie</label>
-        <select id="t-cat">
-          <option>Plomberie</option><option>Électricité</option>
-          <option>Peinture / réfection</option><option>Climatisation</option>
-          <option>Espaces communs</option><option>Toiture</option><option>Autre</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Statut</label>
-        <select id="t-statut">
-          <option>Devis</option><option>En cours</option><option>Terminé</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Description</label>
-      <textarea id="t-desc" placeholder="Décrivez les travaux..."></textarea>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Montant devis (Fr CFA)</label>
-        <input type="number" id="t-devis" placeholder="0">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Coût réel (Fr CFA)</label>
-        <input type="number" id="t-reel" placeholder="Si terminé">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Artisan</label>
-        <input type="text" id="t-artisan" placeholder="Nom artisan">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Date prévue</label>
-        <input type="date" id="t-date">
-      </div>
-    </div>
+    <div class="modal-title">Nouveau travail</div>
+    <div class="form-group"><label class="form-label">Appartement</label>
+      <select id="t-appt"><option>Espaces communs</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>10</option><option>11</option><option>12</option><option>20</option><option>21</option><option>30</option><option>31</option><option>14</option><option>V1</option><option>22</option><option>24</option><option>V31</option><option>VR</option></select></div>
+    <div class="form-group"><label class="form-label">Catégorie</label>
+      <select id="t-cat"><option>Plomberie</option><option>Électricité</option><option>Peinture / réfection</option><option>Climatisation</option><option>Espaces communs</option><option>Toiture</option><option>Autre</option></select></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea id="t-desc" placeholder="Décrivez les travaux..."></textarea></div>
+    <div class="form-group"><label class="form-label">Statut</label>
+      <select id="t-statut"><option>Devis</option><option>En cours</option><option>Terminé</option></select></div>
+    <div class="form-group"><label class="form-label">Montant devis (Fr CFA)</label><input type="number" id="t-devis" placeholder="0"></div>
+    <div class="form-group"><label class="form-label">Artisan</label><input type="text" id="t-artisan" placeholder="Nom artisan"></div>
     <div class="form-actions">
       <button class="btn-cancel" onclick="closeModal('modal-travail')">Annuler</button>
       <button class="btn-save" onclick="sauvegarderTravail()">Enregistrer</button>
@@ -188,38 +156,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- MODAL ARTISAN -->
 <div class="modal-overlay" id="modal-artisan">
   <div class="modal">
     <div class="modal-title">Nouvel artisan</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Nom</label>
-        <input type="text" id="a-nom" placeholder="Kouassi Jean">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Spécialité</label>
-        <select id="a-spec">
-          <option>Plomberie</option><option>Électricité</option>
-          <option>Peinture / réfection</option><option>Climatisation</option>
-          <option>Toiture</option><option>Polyvalent</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Téléphone</label>
-        <input type="tel" id="a-tel" placeholder="00225XXXXXXXX">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Note /5</label>
-        <input type="number" id="a-note" min="1" max="5" placeholder="5">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Commentaire</label>
-      <textarea id="a-comment" placeholder="Fiable, tarifs raisonnables..."></textarea>
-    </div>
+    <div class="form-group"><label class="form-label">Nom</label><input type="text" id="a-nom" placeholder="Kouassi Jean"></div>
+    <div class="form-group"><label class="form-label">Spécialité</label>
+      <select id="a-spec"><option>Plomberie</option><option>Électricité</option><option>Peinture / réfection</option><option>Climatisation</option><option>Toiture</option><option>Polyvalent</option></select></div>
+    <div class="form-group"><label class="form-label">Téléphone</label><input type="tel" id="a-tel" placeholder="00225XXXXXXXX"></div>
+    <div class="form-group"><label class="form-label">Note /5</label><input type="number" id="a-note" min="1" max="5" placeholder="5"></div>
+    <div class="form-group"><label class="form-label">Commentaire</label><textarea id="a-comment" placeholder="Fiable, tarifs raisonnables..."></textarea></div>
     <div class="form-actions">
       <button class="btn-cancel" onclick="closeModal('modal-artisan')">Annuler</button>
       <button class="btn-save" onclick="sauvegarderArtisan()">Enregistrer</button>
@@ -227,17 +172,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- MODAL TERMINER TRAVAIL -->
 <div class="modal-overlay" id="modal-terminer">
   <div class="modal">
     <div class="modal-title">Marquer comme terminé</div>
-    <div class="form-group">
-      <label class="form-label">Coût réel des travaux (Fr CFA)</label>
-      <input type="number" id="terminer-montant" placeholder="0">
-    </div>
+    <div class="form-group"><label class="form-label">Coût réel (Fr CFA)</label><input type="number" id="terminer-montant" placeholder="0"></div>
     <div class="form-actions">
       <button class="btn-cancel" onclick="closeModal('modal-terminer')">Annuler</button>
       <button class="btn-save" onclick="confirmerTerminer()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-signal">
+  <div class="modal">
+    <div class="modal-title">Signaler un problème</div>
+    <div class="success-box" id="signal-ok">Signalement envoyé. Nous vous contacterons prochainement.</div>
+    <div class="form-group"><label class="form-label">Type</label>
+      <select id="signal-type"><option>Plomberie</option><option>Électricité</option><option>Climatisation</option><option>Serrure / Porte</option><option>Parties communes</option><option>Autre</option></select></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea id="signal-desc" placeholder="Décrivez le problème..."></textarea></div>
+    <div class="form-group"><label class="form-label">Urgence</label>
+      <select id="signal-urgence"><option>Normal</option><option>Urgent</option><option>Très urgent</option></select></div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-signal')">Annuler</button>
+      <button class="btn-save" onclick="envoyerSignalement()">Envoyer</button>
     </div>
   </div>
 </div>
@@ -246,293 +203,382 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwH2uNx0khMYaaZDKTVPUr4Bodblb9iMiWz6zhI-m8V0dLosjo4Og-zabqtqx7IMFCGmg/exec';
 const CHARGES_FIXES = 370000;
 const LOYER_THEORIQUE = 4560000;
+const MOIS_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 
-let locataires = [];
-let travaux = [];
-let artisans = [];
+// Comptes propriétaires
+const PROPRIETAIRES = {
+  'proprio_diaby':   { mdp:'Diaby2i2026', nom:'Madame Diaby Djeneba' },
+  'proprio_musandji':{ mdp:'Musandji2i2026', nom:'Monsieur Musandji Nzanza Roger' }
+};
+
+let session = null;
+let locataires = [], travaux = [], artisans = [];
 let periodeFinances = 'mensuel';
 let travailEnCours = null;
 
 function fmt(n){ return Math.round(n||0).toLocaleString('fr-FR'); }
 function initials(s){ return (s||'').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase(); }
+function moisLabel(slug){ const y=slug.substring(0,4),m=parseInt(slug.substring(4,6))-1; return MOIS_FR[m]+' '+y; }
 
-async function get(action){
-  const res = await fetch(WEBAPP_URL + '?action=' + action);
-  return res.json();
-}
+async function get(action){ const r=await fetch(WEBAPP_URL+'?action='+action); return r.json(); }
+async function post(body){ const r=await fetch(WEBAPP_URL,{method:'POST',body:JSON.stringify(body)}); return r.json(); }
 
-async function post(body){
-  const res = await fetch(WEBAPP_URL, {
-    method:'POST',
-    body: JSON.stringify(body)
-  });
-  return res.json();
-}
+// ── CONNEXION ─────────────────────────────────────────────────
+async function seConnecter() {
+  const id  = document.getElementById('input-id').value.trim();
+  const mdp = document.getElementById('input-mdp').value.trim();
+  if (!id || !mdp) { showLoginError('Veuillez renseigner vos identifiants.'); return; }
 
-async function chargerTout(){
-  document.getElementById('sync-info').textContent = 'Synchronisation...';
+  // Vérifier propriétaires en local
+  if (PROPRIETAIRES[id] && PROPRIETAIRES[id].mdp === mdp) {
+    session = { type:'proprio', id, nom:PROPRIETAIRES[id].nom };
+    ouvrirProprio();
+    return;
+  }
+
+  // Vérifier locataires via WebApp
   try {
-    const [r1, r2, r3] = await Promise.all([get('getLocataires'), get('getTravaux'), get('getArtisans')]);
-    locataires = r1.data || [];
-    travaux    = r2.data || [];
-    artisans   = r3.data || [];
-    const now = new Date();
-    document.getElementById('sync-info').textContent = 'Mis à jour ' + now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-    renderPaiements();
-    renderFinances();
-    renderTravaux();
-    renderArtisans();
-  } catch(e){
-    document.getElementById('sync-info').textContent = 'Erreur connexion';
-    document.getElementById('paiements-content').innerHTML = `<div class="error-box">Erreur de connexion : ${e.message}</div>`;
+    const res = await fetch(WEBAPP_URL+'?action=getPortail&id='+encodeURIComponent(id)+'&mdp='+encodeURIComponent(mdp));
+    const data = await res.json();
+    if (data.success) {
+      session = { type:'locataire', id, ...data.locataire };
+      ouvrirLocataire();
+    } else {
+      showLoginError('Identifiant ou mot de passe incorrect.');
+    }
+  } catch(e) {
+    showLoginError('Erreur de connexion. Vérifiez votre connexion internet.');
   }
 }
 
-// ── PAIEMENTS ─────────────────────────────────────────────────
-function renderPaiements(){
-  const payes    = locataires.filter(l=>l.paye);
-  const nonPayes = locataires.filter(l=>!l.paye);
-  const montant  = payes.reduce((s,l)=>s+l.loyer,0);
-  const pct      = locataires.length ? Math.round(payes.length/locataires.length*100) : 0;
-
-  let html = `
-    <div class="metrics">
-      <div class="metric"><div class="metric-label">Loyers perçus</div><div class="metric-val">${payes.length}/${locataires.length}</div><div class="metric-sub">locataires</div></div>
-      <div class="metric"><div class="metric-label">Encaissé</div><div class="metric-val green">${fmt(montant)}</div><div class="metric-sub">Fr CFA</div></div>
-    </div>
-    <div class="stitle">Recouvrement — ${pct}%</div>
-    <div class="prog-bg"><div class="prog-fill" style="width:${pct}%"></div></div>`;
-
-  if(payes.length){
-    html += `<div class="stitle">Payés (${payes.length})</div>`;
-    payes.forEach(l=>{
-      html += `<div class="loc-card">
-        <div class="loc-left">
-          <div class="avatar av-g">${initials(l.nom+' '+l.prenom)}</div>
-          <div><div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div>
-          <div class="loc-sub">Appt ${l.appt} · ${fmt(l.loyer)} Fr · ${l.datePaie||''}</div></div>
-        </div>
-        <span class="pill pill-g">Payé</span>
-      </div>`;
-    });
-  }
-
-  if(nonPayes.length){
-    html += `<div class="stitle" style="margin-top:16px;">En attente — appuyer pour valider (${nonPayes.length})</div>`;
-    nonPayes.forEach(l=>{
-      html += `<div class="loc-card">
-        <div class="loc-left">
-          <div class="avatar av-r">${initials(l.nom+' '+l.prenom)}</div>
-          <div><div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div>
-          <div class="loc-sub">Appt ${l.appt} · ${fmt(l.loyer)} Fr CFA</div></div>
-        </div>
-        <button class="pill pill-a" onclick="validerPaiement(${l.row},'${l.nom} ${l.prenom}')">Valider</button>
-      </div>`;
-    });
-  }
-  document.getElementById('paiements-content').innerHTML = html;
+function showLoginError(msg){
+  const el=document.getElementById('login-error');
+  el.textContent=msg; el.style.display='block';
 }
 
-async function validerPaiement(row, nom){
-  if(!confirm('Confirmer le paiement de ' + nom + ' ?')) return;
-  document.getElementById('sync-info').textContent = 'Enregistrement...';
-  try {
-    await post({ action:'setPaye', row:row, paye:true });
-    await chargerTout();
-  } catch(e){
-    alert('Erreur : ' + e.message);
-  }
+// ── INTERFACE PROPRIÉTAIRE ────────────────────────────────────
+async function ouvrirProprio() {
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-proprio').classList.add('active');
+  document.getElementById('topbar-sub').textContent = session.nom + ' — Propriétaire';
+  chargerPaiements();
+  const [r1,r2,r3] = await Promise.all([get('getLocataires'),get('getTravaux'),get('getArtisans')]);
+  locataires = r1.data||[];
+  travaux    = r2.data||[];
+  artisans   = r3.data||[];
+  chargerPaiements();
 }
 
-// ── FINANCES ──────────────────────────────────────────────────
-function renderFinances(){
-  const encaisse = locataires.filter(l=>l.paye).reduce((s,l)=>s+l.loyer,0);
-  const M = periodeFinances === 'mensuel';
-  const k = M ? 1 : 12;
-  const loyers   = LOYER_THEORIQUE * k;
-  const charges  = CHARGES_FIXES * k;
-  const prov     = Math.round(LOYER_THEORIQUE * 0.05) * k;
-  const net      = loyers - charges - prov;
-
-  document.getElementById('finances-content').innerHTML = `
-    <div class="tab-toggle">
-      <button class="${M?'active':''}" onclick="setPeriode('mensuel',this)">Mensuel</button>
-      <button class="${!M?'active':''}" onclick="setPeriode('annuel',this)">Annuel</button>
-    </div>
-    <div class="metrics">
-      <div class="metric"><div class="metric-label">Loyers théoriques</div><div class="metric-val">${fmt(loyers)}</div><div class="metric-sub">Fr CFA</div></div>
-      <div class="metric"><div class="metric-label">Encaissé ce mois</div><div class="metric-val green">${fmt(encaisse)}</div><div class="metric-sub">Fr CFA</div></div>
-    </div>
-    <div class="stitle">Compte de résultat</div>
-    <div class="card">
-      <div class="row"><span class="row-label">Loyers théoriques</span><span class="row-val pos">+ ${fmt(loyers)} Fr</span></div>
-      <div class="row"><span class="row-label">Salaire gardien</span><span class="row-val neg">- ${fmt(90000*k)} Fr</span></div>
-      <div class="row"><span class="row-label">Eau + électricité</span><span class="row-val neg">- ${fmt(30000*k)} Fr</span></div>
-      <div class="row"><span class="row-label">Taxe foncière</span><span class="row-val neg">- ${fmt(125000*k)} Fr</span></div>
-      <div class="row"><span class="row-label">Assurance immeuble</span><span class="row-val neg">- ${fmt(125000*k)} Fr</span></div>
-      <div class="row"><span class="row-label">Provision travaux (5%)</span><span class="row-val neg">- ${fmt(prov)} Fr</span></div>
-      <div class="row total"><span>Revenu net estimé</span><span class="row-val pos">${fmt(net)} Fr</span></div>
-    </div>
-    <div class="alert-box">Assurance immeuble : à souscrire en urgence — 1 500 000 Fr CFA de risque non couvert.</div>`;
-}
-
-function setPeriode(p, btn){
-  periodeFinances = p;
-  document.querySelectorAll('.tab-toggle button').forEach(b=>b.classList.remove('active'));
+function navProprio(onglet, btn) {
+  document.querySelectorAll('#screen-proprio .nav-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  renderFinances();
+  if(onglet==='paiements') chargerPaiements();
+  else if(onglet==='finances') chargerFinances();
+  else if(onglet==='travaux') chargerTravaux();
+  else if(onglet==='artisans') chargerArtisans();
 }
 
-// ── TRAVAUX ───────────────────────────────────────────────────
-const CAT_COLORS = {
-  'Plomberie':'#E6F1FB|#0C447C','Électricité':'#FAEEDA|#854F0B',
-  'Peinture / réfection':'#EAF3DE|#3B6D11','Climatisation':'#EEEDFE|#3C3489',
-  'Espaces communs':'#f0f0f0|#666','Toiture':'#fde8e8|#c0392b','Autre':'#f0f0f0|#666'
-};
-function catStyle(cat){
-  const c=(CAT_COLORS[cat]||'#f0f0f0|#666').split('|');
-  return `background:${c[0]};color:${c[1]};`;
-}
-const STATUT_PILL = {
-  'Devis':'background:#E6F1FB;color:#0C447C;',
-  'En cours':'background:#fef3e2;color:#a05c00;',
-  'Terminé':'background:#d4f0d8;color:#1e5c26;'
-};
-
-function renderTravaux(){
-  let html = `<button class="btn-primary" onclick="openModal('modal-travail')">+ Nouveau devis / travail</button>`;
-  if(!travaux.length){
-    html += `<div class="stitle">Aucun travail enregistré</div>`;
-  } else {
-    const encours = travaux.filter(t=>t.statut!=='Terminé');
-    const termines = travaux.filter(t=>t.statut==='Terminé');
-    if(encours.length){
-      html += `<div class="stitle">En cours & devis (${encours.length})</div>`;
-      encours.forEach(t=>{
-        html += travauxCard(t);
-      });
-    }
-    if(termines.length){
-      html += `<div class="stitle" style="margin-top:16px;">Terminés (${termines.length})</div>`;
-      termines.forEach(t=>{ html += travauxCard(t); });
-    }
-  }
-  document.getElementById('travaux-content').innerHTML = html;
-}
-
-function travauxCard(t){
-  const sp = STATUT_PILL[t.statut]||'';
-  return `<div class="travail-card">
-    <div class="travail-header">
-      <div style="flex:1;">
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-          <span class="cat-tag" style="${catStyle(t.categorie)}">${t.categorie}</span>
-          <span class="cat-tag" style="${sp}">${t.statut}</span>
-        </div>
-        <div class="travail-title">${t.desc||'Sans description'}</div>
-        <div class="travail-meta">Appt ${t.appt}${t.artisan?' · '+t.artisan:''}</div>
-      </div>
-    </div>
-    <div class="travail-footer">
-      <div>
-        <span style="font-size:11px;color:#888;">Devis : </span>
-        <span style="font-size:14px;font-weight:500;">${fmt(t.devis)} Fr</span>
-        ${t.reel?`<span style="font-size:11px;color:#888;margin-left:8px;">Réel : </span><span style="font-size:14px;font-weight:500;color:#2d7a3a;">${fmt(t.reel)} Fr</span>`:''}
-      </div>
-      ${t.statut!=='Terminé'?`<button class="btn-success" onclick="ouvrirTerminer(${t.row})">Terminer</button>`:`<span style="font-size:11px;color:#888;">${t.date||''}</span>`}
-    </div>
+function renderNavProprio(onglet){
+  return `<div class="nav">
+    <button class="nav-btn ${onglet==='paiements'?'active':''}" onclick="navProprio('paiements',this)">Paiements</button>
+    <button class="nav-btn ${onglet==='finances'?'active':''}" onclick="navProprio('finances',this)">Finances</button>
+    <button class="nav-btn ${onglet==='travaux'?'active':''}" onclick="navProprio('travaux',this)">Travaux</button>
+    <button class="nav-btn ${onglet==='artisans'?'active':''}" onclick="navProprio('artisans',this)">Artisans</button>
   </div>`;
 }
 
-async function sauvegarderTravail(){
-  const data = {
-    appt:      document.getElementById('t-appt').value,
-    categorie: document.getElementById('t-cat').value,
-    desc:      document.getElementById('t-desc').value,
-    statut:    document.getElementById('t-statut').value,
-    devis:     parseInt(document.getElementById('t-devis').value)||0,
-    reel:      parseInt(document.getElementById('t-reel').value)||0,
-    artisan:   document.getElementById('t-artisan').value,
-    date:      document.getElementById('t-date').value,
-  };
-  closeModal('modal-travail');
-  document.getElementById('sync-info').textContent = 'Enregistrement...';
-  await post({ action:'addTravail', data });
-  await chargerTout();
+function chargerPaiements(){
+  const payes=locataires.filter(l=>l.paye);
+  const nonPayes=locataires.filter(l=>!l.paye);
+  const montant=payes.reduce((s,l)=>s+l.loyer,0);
+  const pct=locataires.length?Math.round(payes.length/locataires.length*100):0;
+  let html=renderNavProprio('paiements')+'<div style="padding:14px;">';
+  html+=`<div class="metrics">
+    <div class="metric"><div class="metric-label">Loyers perçus</div><div class="metric-val">${payes.length}/${locataires.length}</div></div>
+    <div class="metric"><div class="metric-label">Encaissé</div><div class="metric-val green">${fmt(montant)}</div><div class="metric-sub">Fr CFA</div></div>
+  </div>
+  <div class="stitle">Recouvrement — ${pct}%</div>
+  <div class="prog-bg"><div class="prog-fill" style="width:${pct}%"></div></div>`;
+  if(payes.length){
+    html+=`<div class="stitle">Payés (${payes.length})</div>`;
+    payes.forEach(l=>{html+=locCard(l);});
+  }
+  if(nonPayes.length){
+    html+=`<div class="stitle" style="margin-top:14px;">En attente — appuyer pour valider (${nonPayes.length})</div>`;
+    nonPayes.forEach(l=>{html+=locCardValider(l);});
+  }
+  html+=`<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>`;
+  document.getElementById('proprio-content').innerHTML=html;
 }
 
-function ouvrirTerminer(row){
-  travailEnCours = row;
-  document.getElementById('terminer-montant').value = '';
-  openModal('modal-terminer');
+function locCard(l){
+  const ini=initials(l.nom+' '+l.prenom);
+  return `<div class="loc-card"><div class="loc-left"><div class="avatar av-g">${ini}</div><div><div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div><div class="loc-sub">Appt ${l.appt} · ${fmt(l.loyer)} Fr · ${l.datePaie||''}</div></div></div><span class="pill pill-g">Payé</span></div>`;
 }
 
-async function confirmerTerminer(){
-  const montant = parseInt(document.getElementById('terminer-montant').value)||0;
-  closeModal('modal-terminer');
-  document.getElementById('sync-info').textContent = 'Enregistrement...';
-  await post({ action:'updateTravail', row:travailEnCours, data:{
-    statut:'Terminé', reel:montant, date:new Date().toLocaleDateString('fr-FR')
-  }});
-  await chargerTout();
+function locCardValider(l){
+  const ini=initials(l.nom+' '+l.prenom);
+  return `<div class="loc-card"><div class="loc-left"><div class="avatar av-r">${ini}</div><div><div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div><div class="loc-sub">Appt ${l.appt} · ${fmt(l.loyer)} Fr CFA</div></div></div><button class="pill pill-a" onclick="validerPaiement(${l.row},'${l.nom} ${l.prenom}')">Valider</button></div>`;
 }
 
-// ── ARTISANS ──────────────────────────────────────────────────
-function renderArtisans(){
-  let html = `<button class="btn-primary" onclick="openModal('modal-artisan')">+ Ajouter un artisan</button>`;
-  if(!artisans.length){
-    html += `<div class="stitle">Aucun artisan enregistré</div>`;
-  } else {
-    html += `<div class="stitle">${artisans.length} artisan(s)</div>`;
-    artisans.forEach(a=>{
-      const ini = (a.nom||'').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-      const etoiles = '★'.repeat(a.note||4)+'☆'.repeat(5-(a.note||4));
-      html += `<div class="artisan-card">
-        <div class="artisan-av">${ini}</div>
-        <div style="flex:1;min-width:0;">
-          <div class="artisan-nom">${a.nom}</div>
-          <div class="artisan-meta">${a.specialite}</div>
-          <div class="stars">${etoiles}</div>
-          <div class="artisan-tel">${a.tel}</div>
-          ${a.comment?`<div class="artisan-meta" style="margin-top:3px;">${a.comment}</div>`:''}
+async function validerPaiement(row, nom){
+  if(!confirm('Confirmer le paiement de '+nom+' ?')) return;
+  await post({action:'setPaye',row,paye:true});
+  const r=await get('getLocataires'); locataires=r.data||[];
+  chargerPaiements();
+}
+
+function chargerFinances(){
+  const encaisse=locataires.filter(l=>l.paye).reduce((s,l)=>s+l.loyer,0);
+  const M=periodeFinances==='mensuel', k=M?1:12;
+  const loyers=LOYER_THEORIQUE*k, charges=CHARGES_FIXES*k;
+  const prov=Math.round(LOYER_THEORIQUE*.05)*k, net=loyers-charges-prov;
+  let html=renderNavProprio('finances')+'<div style="padding:14px;">';
+  html+=`<div class="tab-toggle">
+    <button class="${M?'active':''}" onclick="periodeFinances='mensuel';chargerFinances()">Mensuel</button>
+    <button class="${!M?'active':''}" onclick="periodeFinances='annuel';chargerFinances()">Annuel</button>
+  </div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Loyers théoriques</div><div class="metric-val">${fmt(loyers)}</div><div class="metric-sub">Fr CFA</div></div>
+    <div class="metric"><div class="metric-label">Encaissé</div><div class="metric-val green">${fmt(encaisse)}</div><div class="metric-sub">Fr CFA</div></div>
+  </div>
+  <div class="card"><div class="card-title">Compte de résultat</div>
+    <div class="row"><span class="row-label">Loyers théoriques</span><span class="row-val pos">+ ${fmt(loyers)} Fr</span></div>
+    <div class="row"><span class="row-label">Salaire gardien</span><span class="row-val neg">- ${fmt(90000*k)} Fr</span></div>
+    <div class="row"><span class="row-label">Eau + électricité</span><span class="row-val neg">- ${fmt(30000*k)} Fr</span></div>
+    <div class="row"><span class="row-label">Taxe foncière</span><span class="row-val neg">- ${fmt(125000*k)} Fr</span></div>
+    <div class="row"><span class="row-label">Assurance immeuble</span><span class="row-val neg">- ${fmt(125000*k)} Fr</span></div>
+    <div class="row"><span class="row-label">Provision travaux (5%)</span><span class="row-val neg">- ${fmt(prov)} Fr</span></div>
+    <div class="row total"><span>Revenu net estimé</span><span class="row-val pos">${fmt(net)} Fr</span></div>
+  </div>
+  <div class="alert-box">Assurance immeuble : à souscrire en urgence.</div>
+  <button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>`;
+  document.getElementById('proprio-content').innerHTML=html;
+}
+
+function chargerTravaux(){
+  let html=renderNavProprio('travaux')+'<div style="padding:14px;">';
+  html+=`<button class="btn" style="margin-bottom:14px;" onclick="openModal('modal-travail')">+ Nouveau travail</button>`;
+  if(!travaux.length){ html+='<p style="font-size:13px;color:#888;">Aucun travail enregistré.</p>'; }
+  else {
+    travaux.slice().reverse().forEach(t=>{
+      const sp=t.statut==='Terminé'?'pill-g':t.statut==='En cours'?'pill-a':'';
+      html+=`<div class="travail-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div><div style="font-size:14px;font-weight:500;">${t.desc||'Sans description'}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Appt ${t.appt}${t.artisan?' · '+t.artisan:''}</div></div>
+          <span class="pill ${sp}" style="cursor:default;">${t.statut}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid #f0f0f0;">
+          <span style="font-size:13px;font-weight:500;">${fmt(t.devis)} Fr devis${t.reel?' · '+fmt(t.reel)+' Fr réel':''}</span>
+          ${t.statut!=='Terminé'?`<button class="btn-success" onclick="ouvrirTerminer(${t.row})">Terminer</button>`:''}
         </div>
       </div>`;
     });
   }
-  document.getElementById('artisans-content').innerHTML = html;
+  html+=`<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>`;
+  document.getElementById('proprio-content').innerHTML=html;
+}
+
+function chargerArtisans(){
+  let html=renderNavProprio('artisans')+'<div style="padding:14px;">';
+  html+=`<button class="btn" style="margin-bottom:14px;" onclick="openModal('modal-artisan')">+ Ajouter un artisan</button>`;
+  artisans.forEach(a=>{
+    const ini=(a.nom||'').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+    html+=`<div class="artisan-card">
+      <div class="artisan-av">${ini}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:500;">${a.nom}</div>
+        <div style="font-size:11px;color:#888;">${a.specialite}</div>
+        <div style="font-size:12px;color:#185FA5;margin-top:2px;">${a.tel}</div>
+        ${'★'.repeat(a.note||4)+'☆'.repeat(5-(a.note||4))}
+      </div>
+    </div>`;
+  });
+  html+=`<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>`;
+  document.getElementById('proprio-content').innerHTML=html;
+}
+
+async function sauvegarderTravail(){
+  const data={appt:document.getElementById('t-appt').value,categorie:document.getElementById('t-cat').value,
+    desc:document.getElementById('t-desc').value,statut:document.getElementById('t-statut').value,
+    devis:parseInt(document.getElementById('t-devis').value)||0,artisan:document.getElementById('t-artisan').value,date:''};
+  closeModal('modal-travail');
+  await post({action:'addTravail',data});
+  const r=await get('getTravaux'); travaux=r.data||[];
+  chargerTravaux();
+}
+
+function ouvrirTerminer(row){ travailEnCours=row; document.getElementById('terminer-montant').value=''; openModal('modal-terminer'); }
+async function confirmerTerminer(){
+  const montant=parseInt(document.getElementById('terminer-montant').value)||0;
+  closeModal('modal-terminer');
+  await post({action:'updateTravail',row:travailEnCours,data:{statut:'Terminé',reel:montant,date:new Date().toLocaleDateString('fr-FR')}});
+  const r=await get('getTravaux'); travaux=r.data||[];
+  chargerTravaux();
 }
 
 async function sauvegarderArtisan(){
-  const data = {
-    nom:       document.getElementById('a-nom').value,
-    specialite:document.getElementById('a-spec').value,
-    tel:       document.getElementById('a-tel').value,
-    note:      parseInt(document.getElementById('a-note').value)||4,
-    comment:   document.getElementById('a-comment').value,
-  };
+  const data={nom:document.getElementById('a-nom').value,specialite:document.getElementById('a-spec').value,
+    tel:document.getElementById('a-tel').value,note:parseInt(document.getElementById('a-note').value)||4,
+    comment:document.getElementById('a-comment').value};
   closeModal('modal-artisan');
-  document.getElementById('sync-info').textContent = 'Enregistrement...';
-  await post({ action:'addArtisan', data });
-  await chargerTout();
+  await post({action:'addArtisan',data});
+  const r=await get('getArtisans'); artisans=r.data||[];
+  chargerArtisans();
+}
+
+// ── INTERFACE LOCATAIRE ───────────────────────────────────────
+async function ouvrirLocataire() {
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-locataire').classList.add('active');
+  document.getElementById('topbar-sub').textContent = 'Espace locataire — Appt ' + session.appt;
+  chargerAccueilLocataire();
+}
+
+function renderNavLocataire(onglet){
+  return `<div class="nav">
+    <button class="nav-btn ${onglet==='accueil'?'active':''}" onclick="chargerAccueilLocataire()">Accueil</button>
+    <button class="nav-btn ${onglet==='quittances'?'active':''}" onclick="chargerQuittancesLocataire()">Quittances</button>
+    <button class="nav-btn ${onglet==='infos'?'active':''}" onclick="chargerInfosLocataire()">Mon appart</button>
+    <button class="nav-btn ${onglet==='contact'?'active':''}" onclick="chargerContactLocataire()">Contact</button>
+  </div>`;
+}
+
+async function chargerAccueilLocataire(){
+  document.getElementById('locataire-content').innerHTML=renderNavLocataire('accueil')+
+    '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
+  try {
+    const res=await fetch(WEBAPP_URL+'?action=getHistorique&id='+encodeURIComponent(session.id));
+    const data=await res.json();
+    const dernier=data.paiements&&data.paiements.length>0?data.paiements[0]:null;
+    document.getElementById('locataire-content').innerHTML=renderNavLocataire('accueil')+`<div style="padding:14px;">
+      <div class="welcome">
+        <div class="welcome-nom">Bonjour ${session.nom?session.nom.split(' ')[0]:''}</div>
+        <div class="welcome-sub">Appartement ${session.appt} — Immeuble 2i</div>
+        <span class="badge-locataire">Locataire</span>
+      </div>
+      <div class="card">
+        <div class="card-title">Situation du mois</div>
+        <div class="row"><span class="row-label">Loyer mensuel</span><span class="row-val">${fmt(data.loyer||0)} Fr CFA</span></div>
+        ${dernier?`<div class="row"><span class="row-label">Dernier paiement</span><span class="row-val green">${dernier.datePaie}</span></div>`:''}
+        <div class="row"><span class="row-label">Statut</span><span class="pill ${dernier?'pill-g':'pill-r'}">${dernier?'Payé':'En attente'}</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Actions</div>
+        <button class="btn-outline" onclick="chargerQuittancesLocataire()">📄 &nbsp;Mes quittances PDF</button>
+        <button class="btn-outline" onclick="openModal('modal-signal')">🔧 &nbsp;Signaler un problème</button>
+        <button class="btn-outline" onclick="chargerContactLocataire()">📞 &nbsp;Contacter la direction</button>
+      </div>
+      <button class="logout" onclick="seDeconnecter()">Se déconnecter</button>
+    </div>`;
+  } catch(e){ document.getElementById('locataire-content').innerHTML=renderNavLocataire('accueil')+'<div style="padding:14px;"><p style="color:#c0392b;">Erreur de chargement.</p></div>'; }
+}
+
+async function chargerQuittancesLocataire(){
+  document.getElementById('locataire-content').innerHTML=renderNavLocataire('quittances')+
+    '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement de vos quittances...</div></div>';
+  try {
+    const res=await fetch(WEBAPP_URL+'?action=getHistorique&id='+encodeURIComponent(session.id));
+    const data=await res.json();
+    let html=renderNavLocataire('quittances')+'<div style="padding:14px;"><div class="card"><div class="card-title">Mes quittances — 6 derniers mois</div>';
+    if(!data.success||!data.paiements||!data.paiements.length){
+      html+='<p style="font-size:13px;color:#888;text-align:center;padding:20px 0;">Aucune quittance disponible.</p>';
+    } else {
+      data.paiements.forEach(function(p){
+        html+=`<div class="quittance-row">
+          <div><div style="font-size:14px;font-weight:500;">${moisLabel(p.moisSlug)}</div>
+          <div style="font-size:12px;color:#888;">${fmt(p.montant)} Fr CFA</div></div>
+          <button class="dl-btn" id="btn-${p.moisSlug}" onclick="telechargerQuittance('${p.moisSlug}','${p.datePaie}','${p.modePaie}',${p.montant})">Télécharger</button>
+        </div>`;
+      });
+    }
+    html+='</div><button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
+    document.getElementById('locataire-content').innerHTML=html;
+  } catch(e){ document.getElementById('locataire-content').innerHTML=renderNavLocataire('quittances')+'<div style="padding:14px;"><p style="color:#c0392b;">Erreur.</p></div>'; }
+}
+
+async function telechargerQuittance(moisSlug, datePaie, modePaie, montant){
+  const btn=document.getElementById('btn-'+moisSlug);
+  btn.disabled=true; btn.innerHTML='<span class="spinner-inline"></span>';
+  try {
+    const res=await fetch(WEBAPP_URL+'?action=genererQuittance&id='+encodeURIComponent(session.id)+'&moisSlug='+moisSlug+'&datePaie='+encodeURIComponent(datePaie)+'&modePaie='+encodeURIComponent(modePaie)+'&montant='+montant);
+    const data=await res.json();
+    if(data.success&&data.pdf){
+      const binary=atob(data.pdf), bytes=new Uint8Array(binary.length);
+      for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+      const blob=new Blob([bytes],{type:'application/pdf'});
+      const url=URL.createObjectURL(blob), a=document.createElement('a');
+      a.href=url; a.download='Quittance_'+moisLabel(moisSlug).replace(' ','_')+'.pdf'; a.click();
+      URL.revokeObjectURL(url);
+    } else { alert('Erreur lors de la génération.'); }
+  } catch(e){ alert('Erreur de connexion.'); }
+  btn.disabled=false; btn.innerHTML='Télécharger';
+}
+
+function chargerInfosLocataire(){
+  document.getElementById('locataire-content').innerHTML=renderNavLocataire('infos')+`<div style="padding:14px;">
+    <div class="card"><div class="card-title">Mon appartement</div>
+      <div class="row"><span class="row-label">Appartement</span><span class="row-val">${session.appt}</span></div>
+      <div class="row"><span class="row-label">Immeuble</span><span class="row-val">Immeuble 2i</span></div>
+      <div class="row"><span class="row-label">Adresse</span><span class="row-val">Palmeraies, Cocody / Abidjan</span></div>
+      <div class="row"><span class="row-label">Bail</span><span class="row-val">12 mois renouvelable</span></div>
+    </div>
+    <div class="card"><div class="card-title">Règlement intérieur</div>
+      <div style="font-size:13px;color:#666;line-height:1.8;">
+        <p>• Loyer dû le 1er de chaque mois</p>
+        <p>• Retard : pénalités de 10%</p>
+        <p>• Préavis de départ : 1 mois minimum</p>
+        <p>• Calme obligatoire entre 22h et 7h</p>
+      </div>
+    </div>
+    <button class="logout" onclick="seDeconnecter()">Se déconnecter</button>
+  </div>`;
+}
+
+function chargerContactLocataire(){
+  document.getElementById('locataire-content').innerHTML=renderNavLocataire('contact')+`<div style="padding:14px;">
+    <div class="card"><div class="card-title">Direction</div>
+      <div class="row"><span class="row-label">Email</span><span class="row-val" style="color:#185FA5;">immeuble2i.abidjan@gmail.com</span></div>
+    </div>
+    <div class="card"><div class="card-title">Signaler un problème</div>
+      <button class="btn-outline" onclick="openModal('modal-signal')">🔧 &nbsp;Plomberie / Électricité / Climatisation</button>
+      <button class="btn-outline" onclick="openModal('modal-signal')">🚪 &nbsp;Serrure / Porte / Fenêtre</button>
+      <button class="btn-outline" onclick="openModal('modal-signal')">🏢 &nbsp;Parties communes</button>
+      <button class="btn-outline" onclick="openModal('modal-signal')">📋 &nbsp;Autre demande</button>
+    </div>
+    <button class="logout" onclick="seDeconnecter()">Se déconnecter</button>
+  </div>`;
+}
+
+async function envoyerSignalement(){
+  const type=document.getElementById('signal-type').value;
+  const desc=document.getElementById('signal-desc').value;
+  const urgence=document.getElementById('signal-urgence').value;
+  if(!desc.trim()){ alert('Veuillez décrire le problème.'); return; }
+  try{ await post({action:'signalerProbleme',locataire:session.nom,appt:session.appt,type,desc,urgence}); }catch(e){}
+  document.getElementById('signal-ok').style.display='block';
+  document.getElementById('signal-desc').value='';
+  setTimeout(function(){ closeModal('modal-signal'); },2500);
 }
 
 // ── UTILS ─────────────────────────────────────────────────────
-function showTab(id, btn){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active');
-  btn.classList.add('active');
+function openModal(id){ document.getElementById('signal-ok')&&(document.getElementById('signal-ok').style.display='none'); document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function seDeconnecter(){
+  session=null; locataires=[]; travaux=[]; artisans=[];
+  document.getElementById('screen-proprio').classList.remove('active');
+  document.getElementById('screen-locataire').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+  document.getElementById('topbar-sub').textContent='Palmeraies, Cocody / Abidjan';
+  document.getElementById('input-mdp').value='';
+  document.getElementById('login-error').style.display='none';
 }
 
-function openModal(id){ document.getElementById(id).classList.add('open'); }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-
-// Fermer modal en cliquant dehors
 document.querySelectorAll('.modal-overlay').forEach(o=>{
-  o.addEventListener('click', function(e){ if(e.target===this) this.classList.remove('open'); });
+  o.addEventListener('click',function(e){ if(e.target===this) closeModal(this.id); });
 });
-
-chargerTout();
+document.getElementById('input-mdp').addEventListener('keydown',function(e){ if(e.key==='Enter') seConnecter(); });
 </script>
 </body>
 </html>
