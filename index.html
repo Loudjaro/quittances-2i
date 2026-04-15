@@ -528,6 +528,7 @@ async function genererQuittanceProprio(btn, nom, prenom, appt, zone, loyer, freq
   const y = today.getFullYear();
   const moisSlug = String(y) + String(m+1).padStart(2,'0');
 
+  frequence = frequence || 'Mensuel';
   const nbMois = frequence === 'Trimestriel' ? 3 : frequence === 'Semestriel' ? 6 : 1;
   const montantTotal = Math.round(loyer * nbMois);
   const nomComplet = nom + (prenom ? ' ' + prenom : '');
@@ -558,7 +559,8 @@ async function genererQuittanceProprio(btn, nom, prenom, appt, zone, loyer, freq
       const blob = new Blob([bytes], {type: 'application/pdf'});
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      const tag = frequence !== 'Mensuel' ? frequence.slice(0,4)+'_' : '';
+      const freq = frequence || 'Mensuel';
+      const tag = freq !== 'Mensuel' ? freq.slice(0,4)+'_' : '';
       a.download = 'Quittance_' + tag + nomComplet.replace(/\s+/g,'_') + '_' + MOIS[m] + '_' + y + '.pdf';
       document.body.appendChild(a);
       a.click();
