@@ -311,6 +311,18 @@ let session=null, locataires=[], travaux=[], artisans=[], travailRow=null, perio
 
 // ── UTILS ─────────────────────────────────────────────────────
 const fmt = n => Math.round(n||0).toLocaleString('fr-FR');
+const fmtDate = d => {
+  if(!d) return '';
+  // Si déjà au format dd/MM/yyyy
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(d)) return d;
+  // Extraire depuis format ISO ou Date string
+  const match = d.toString().match(/(\d{4})-(\d{2})-(\d{2})/);
+  if(match) return match[3]+'/'+match[2]+'/'+match[1];
+  // Tenter de parser
+  const dt = new Date(d);
+  if(!isNaN(dt)) return dt.toLocaleDateString('fr-FR');
+  return d;
+};
 const ini = s => (s||'').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
 const moisLbl = slug => { const y=slug.slice(0,4),m=parseInt(slug.slice(4,6))-1; return MOIS[m]+' '+y; };
 const get = async a => { const r=await fetch(WEBAPP+'?action='+a); return r.json(); };
@@ -434,7 +446,7 @@ function chargerPaiements() {
             <div class="avatar av-green">${ini(l.nom+' '+l.prenom)}</div>
             <div>
               <div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div>
-              <div class="loc-sub">Appt ${l.appt} · ${fmt(l.loyer)} Fr · ${l.datePaie||''}</div>
+              <div class="loc-sub">Appt ${l.appt} · ${fmt(l.loyer)} Fr · ${fmtDate(l.datePaie)}</div>
             </div>
           </div>
           <span class="pill pill-green">Payé</span>
