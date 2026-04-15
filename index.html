@@ -471,7 +471,7 @@ function chargerPaiements() {
           <span class="pill pill-green">Payé</span>
         </div>
         <div class="loc-actions">
-          <button class="btn-violet" onclick="genererQuittanceProprio(${l.row},'${l.nom}','${l.prenom}','${l.appt}',${l.loyer})">📄 PDF</button>
+          <button class="btn-violet" onclick="genererQuittanceProprio('${l.nom}','${l.prenom}','${l.appt}',${l.loyer},'${l.frequence||"Mensuel"}')">📄 PDF</button>
           <button class="btn-red" onclick="annulerPaiement(${l.row},'${l.nom}')">Annuler</button>
         </div>
       </div>`;
@@ -522,51 +522,65 @@ async function annulerPaiement(row, nom) {
   chargerPaiements();
 }
 
-async function genererQuittanceProprio(row, nom, prenom, appt, loyer) {
-  const today=new Date(), m=today.getMonth(), y=today.getFullYear();
-  const moisSlug=String(y)+String(m+1).padStart(2,'0');
-  const datePaie=today.toLocaleDateString('fr-FR');
-  const nomComplet=nom+(prenom?' '+prenom:'');
+async function genererQuittanceProprio(nom, prenom, appt, loyer, frequence) {
+  const today = new Date();
+  const m = today.getMonth();
+  const y = today.getFullYear();
+  const moisSlug = String(y) + String(m+1).padStart(2,'0');
 
-  // Trouver le mode de paiement depuis la liste locataires
-  const loc=locataires.find(l=>l.nom===nom);
-  const modePaie=loc?loc.modePaie:'Dépôt bancaire';
-  const zone=loc?loc.zone:'';
-  const datePaieLoc=loc?loc.datePaie:datePaie;
+  // Trouver les infos du locataire
+  const loc = locataires.find(l => l.nom === nom);
+  const modePaie = loc ? (loc.modePaie || 'Dépôt bancaire') : 'Dépôt bancaire';
+  const datePaie = loc ? (fmtDate(loc.datePaie) || today.toLocaleDateString('fr-FR')) : today.toLocaleDateString('fr-FR');
+  const freq = frequence || (loc ? (loc.frequence || 'Mensuel') : 'Mensuel');
 
-  // Bouton feedback
-  const btn=event.target;
-  btn.textContent='...'; btn.disabled=true;
+  // Calculer le montant selon fréquence
+  const nbMois = freq === 'Trimestriel' ? 3 : freq === 'Semestriel' ? 6 : 1;
+  const montantTotal = loyer * nbMois;
+  const nomComplet = nom + (prenom ? ' ' + prenom : '');
+
+  const btn = event.target;
+  btn.textContent = '...'; btn.disabled = true;
 
   try {
-    const r=await fetch(WEBAPP+'?action=genererQuittance&id=proprio&moisSlug='+moisSlug+
-      '&datePaie='+encodeURIComponent(datePaieLoc||datePaie)+
-      '&modePaie='+encodeURIComponent(modePaie)+
-      '&montant='+loyer+
-      '&nom='+encodeURIComponent(nomComplet)+
-      '&appt='+encodeURIComponent(appt));
-    const d=await r.json();
-    if(d.success&&d.pdf) {
-      const bin=atob(d.pdf), bytes=new Uint8Array(bin.length);
-      for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-      const blob=new Blob([bytes],{type:'application/pdf'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url;
-      a.download='Quittance_'+nomComplet.replace(/\s+/g,'_')+'_'+MOIS[m]+'_'+y+'.pdf';
+    const params = new URLSearchParams({
+      action: 'genererQuittance',
+      id: 'proprio',
+      moisSlug: moisSlug,
+      datePaie: datePaie,
+      modePaie: modePaie,
+      montant: String(montantTotal),
+      frequence: freq,
+      nom: nomComplet,
+      appt: appt
+    });
+
+    const r = await fetch(WEBAPP + '?' + params.toString());
+    const d = await r.json();
+
+    if (d.success && d.pdf) {
+      const bin = atob(d.pdf);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], {type: 'application/pdf'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const typeLabel = freq === 'Trimestriel' ? 'Trim' : freq === 'Semestriel' ? 'Sem' : '';
+      a.download = 'Quittance_' + (typeLabel?typeLabel+'_':'') + nomComplet.replace(/\s+/g,'_') + '_' + MOIS[m] + '_' + y + '.pdf';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      btn.textContent='✓ OK';
-      setTimeout(()=>{ btn.textContent='📄 PDF'; btn.disabled=false; },2000);
+      btn.textContent = '✓ OK';
+      setTimeout(() => { btn.textContent = '📄 PDF'; btn.disabled = false; }, 2000);
     } else {
-      alert('Erreur : PDF non généré. Vérifiez que la WebApp est bien déployée.');
-      btn.textContent='📄 PDF'; btn.disabled=false;
+      alert('Erreur PDF : ' + JSON.stringify(d));
+      btn.textContent = '📄 PDF'; btn.disabled = false;
     }
-  } catch(e){
-    alert('Erreur de connexion : '+e.message);
-    btn.textContent='📄 PDF'; btn.disabled=false;
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+    btn.textContent = '📄 PDF'; btn.disabled = false;
   }
 }
 
