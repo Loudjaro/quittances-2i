@@ -337,8 +337,20 @@ window.addEventListener('load', () => {
     document.getElementById('remember-me').checked = true;
     if (savedMdp) {
       document.getElementById('input-mdp').value = savedMdp;
-      // Connexion automatique si les deux sont mémorisés
-      setTimeout(seConnecter, 300);
+      // Connexion automatique uniquement si propriétaire connu
+      const PROPRIO_IDS = Object.keys(PROPRIO);
+      // Auto-connexion uniquement pour les propriétaires
+      setTimeout(() => {
+        try {
+          if (typeof PROPRIO !== 'undefined' && PROPRIO[savedId] && PROPRIO[savedId].mdp === savedMdp) {
+            seConnecter();
+          } else {
+            document.getElementById('input-mdp').focus();
+          }
+        } catch(e) {
+          document.getElementById('input-mdp').focus();
+        }
+      }, 500);
     } else {
       document.getElementById('input-mdp').focus();
     }
