@@ -450,7 +450,7 @@ function chargerPaiements() {
             <div class="avatar av-green">${ini(l.nom+' '+l.prenom)}</div>
             <div>
               <div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div>
-              <div class="loc-sub">Appt ${l.appt} · ${fmt((l.frequence==='Trimestriel'?3:l.frequence==='Semestriel'?6:1)*l.loyer)} Fr · ${fmtDate(l.datePaie)}${l.frequence&&l.frequence!=='Mensuel'?' ('+l.frequence.toLowerCase()+')',''}</div>
+              <div class="loc-sub">Appt ${l.appt} · ${fmt((l.frequence==='Trimestriel'?3:l.frequence==='Semestriel'?6:1)*l.loyer)} Fr · ${fmtDate(l.datePaie)}${l.frequence&&l.frequence!=='Mensuel'?' ('+l.frequence.toLowerCase()+')':''}</div>
             </div>
           </div>
           <span class="pill pill-green">Payé</span>
