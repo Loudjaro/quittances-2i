@@ -495,18 +495,48 @@ async function genererQuittanceProprio(row, nom, prenom, appt, loyer) {
   const today=new Date(), m=today.getMonth(), y=today.getFullYear();
   const moisSlug=String(y)+String(m+1).padStart(2,'0');
   const datePaie=today.toLocaleDateString('fr-FR');
+  const nomComplet=nom+(prenom?' '+prenom:'');
+
+  // Trouver le mode de paiement depuis la liste locataires
+  const loc=locataires.find(l=>l.nom===nom);
+  const modePaie=loc?loc.modePaie:'Dépôt bancaire';
+  const zone=loc?loc.zone:'';
+  const datePaieLoc=loc?loc.datePaie:datePaie;
+
+  // Bouton feedback
+  const btn=event.target;
+  btn.textContent='...'; btn.disabled=true;
+
   try {
-    const r=await fetch(WEBAPP+'?action=genererQuittance&id=proprio&moisSlug='+moisSlug+'&datePaie='+encodeURIComponent(datePaie)+'&modePaie=Dépôt+bancaire&montant='+loyer+'&nom='+encodeURIComponent(nom+(prenom?' '+prenom:''))+'&appt='+encodeURIComponent(appt));
+    const r=await fetch(WEBAPP+'?action=genererQuittance&id=proprio&moisSlug='+moisSlug+
+      '&datePaie='+encodeURIComponent(datePaieLoc||datePaie)+
+      '&modePaie='+encodeURIComponent(modePaie)+
+      '&montant='+loyer+
+      '&nom='+encodeURIComponent(nomComplet)+
+      '&appt='+encodeURIComponent(appt));
     const d=await r.json();
     if(d.success&&d.pdf) {
       const bin=atob(d.pdf), bytes=new Uint8Array(bin.length);
       for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
       const blob=new Blob([bytes],{type:'application/pdf'});
-      const url=URL.createObjectURL(blob), a=document.createElement('a');
-      a.href=url; a.download='Quittance_'+nom+'_'+MOIS[m]+'_'+y+'.pdf'; a.click();
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='Quittance_'+nomComplet.replace(/\s+/g,'_')+'_'+MOIS[m]+'_'+y+'.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      btn.textContent='✓ OK';
+      setTimeout(()=>{ btn.textContent='📄 PDF'; btn.disabled=false; },2000);
+    } else {
+      alert('Erreur : PDF non généré. Vérifiez que la WebApp est bien déployée.');
+      btn.textContent='📄 PDF'; btn.disabled=false;
     }
-  } catch(e){ alert('Erreur génération PDF.'); }
+  } catch(e){
+    alert('Erreur de connexion : '+e.message);
+    btn.textContent='📄 PDF'; btn.disabled=false;
+  }
 }
 
 // FINANCES
