@@ -330,32 +330,11 @@ const post = async b => { const r=await fetch(WEBAPP,{method:'POST',body:JSON.st
 
 // ── MÉMOIRE IDENTIFIANT ───────────────────────────────────────
 window.addEventListener('load', () => {
-  const savedId  = localStorage.getItem('2i_login_id');
-  const savedMdp = localStorage.getItem('2i_login_mdp');
+  const savedId = localStorage.getItem('2i_login_id');
   if (savedId) {
     document.getElementById('input-id').value = savedId;
     document.getElementById('remember-me').checked = true;
-    if (savedMdp) {
-      document.getElementById('input-mdp').value = savedMdp;
-      // Connexion automatique uniquement si propriétaire connu
-      const PROPRIO_IDS = Object.keys(PROPRIO);
-      // Auto-connexion uniquement pour les propriétaires
-      setTimeout(() => {
-        try {
-          if (typeof PROPRIO !== 'undefined' && PROPRIO[savedId] && PROPRIO[savedId].mdp === savedMdp) {
-            seConnecter();
-          } else {
-            document.getElementById('input-mdp').focus();
-          }
-        } catch(e) {
-          document.getElementById('input-mdp').focus();
-        }
-      }, 500);
-    } else {
-      document.getElementById('input-mdp').focus();
-    }
   }
-  // Pré-remplir depuis URL
   const p = new URLSearchParams(location.search);
   if (p.get('id')) document.getElementById('input-id').value = decodeURIComponent(p.get('id'));
 });
@@ -367,25 +346,19 @@ async function seConnecter() {
   if (!id||!mdp) { errLogin('Veuillez renseigner vos identifiants.'); return; }
 
   if (PROPRIO[id] && PROPRIO[id].mdp === mdp) {
-    // Propriétaire — mémoriser identifiant ET mot de passe
     if (document.getElementById('remember-me').checked) {
       localStorage.setItem('2i_login_id', id);
-      localStorage.setItem('2i_login_mdp', mdp);
     } else {
       localStorage.removeItem('2i_login_id');
-      localStorage.removeItem('2i_login_mdp');
     }
     session = {type:'proprio', id, nom:PROPRIO[id].nom};
     ouvrirProprio();
     return;
   }
-  // Locataire — mémoriser si case cochée
   if (document.getElementById('remember-me').checked) {
     localStorage.setItem('2i_login_id', id);
-    localStorage.setItem('2i_login_mdp', mdp);
   } else {
     localStorage.removeItem('2i_login_id');
-    localStorage.removeItem('2i_login_mdp');
   }
 
   try {
