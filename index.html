@@ -299,7 +299,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <script>
-const WEBAPP = 'https://script.google.com/macros/s/AKfycbwH2uNx0khMYaaZDKTVPUr4Bodblb9iMiWz6zhI-m8V0dLosjo4Og-zabqtqx7IMFCGmg/exec';
+const WEBAPP = 'https://script.google.com/macros/s/AKfycbz5_u3f2g7T5bupmQpMm-EWakREh7SRyoxhS46MbftdqUp2VYQcKgDU6Dzbw7WuzxTWJQ/exec';
 const CHARGES = 370000, LOYER_TH = 4560000;
 const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const PROPRIO = {
@@ -330,10 +330,18 @@ const post = async b => { const r=await fetch(WEBAPP,{method:'POST',body:JSON.st
 
 // ── MÉMOIRE IDENTIFIANT ───────────────────────────────────────
 window.addEventListener('load', () => {
-  const saved = localStorage.getItem('2i_login_id');
-  if (saved) {
-    document.getElementById('input-id').value = saved;
-    document.getElementById('input-mdp').focus();
+  const savedId  = localStorage.getItem('2i_login_id');
+  const savedMdp = localStorage.getItem('2i_login_mdp');
+  if (savedId) {
+    document.getElementById('input-id').value = savedId;
+    document.getElementById('remember-me').checked = true;
+    if (savedMdp) {
+      document.getElementById('input-mdp').value = savedMdp;
+      // Connexion automatique si les deux sont mémorisés
+      setTimeout(seConnecter, 300);
+    } else {
+      document.getElementById('input-mdp').focus();
+    }
   }
   // Pré-remplir depuis URL
   const p = new URLSearchParams(location.search);
@@ -346,17 +354,28 @@ async function seConnecter() {
   const mdp = document.getElementById('input-mdp').value.trim();
   if (!id||!mdp) { errLogin('Veuillez renseigner vos identifiants.'); return; }
 
-  if (document.getElementById('remember-me').checked) {
-    localStorage.setItem('2i_login_id', id);
-  } else {
-    localStorage.removeItem('2i_login_id');
-  }
-
   if (PROPRIO[id] && PROPRIO[id].mdp === mdp) {
+    // Propriétaire — mémoriser identifiant ET mot de passe
+    if (document.getElementById('remember-me').checked) {
+      localStorage.setItem('2i_login_id', id);
+      localStorage.setItem('2i_login_mdp', mdp);
+    } else {
+      localStorage.removeItem('2i_login_id');
+      localStorage.removeItem('2i_login_mdp');
+    }
     session = {type:'proprio', id, nom:PROPRIO[id].nom};
     ouvrirProprio();
     return;
   }
+  // Locataire — mémoriser si case cochée
+  if (document.getElementById('remember-me').checked) {
+    localStorage.setItem('2i_login_id', id);
+    localStorage.setItem('2i_login_mdp', mdp);
+  } else {
+    localStorage.removeItem('2i_login_id');
+    localStorage.removeItem('2i_login_mdp');
+  }
+
   try {
     const r = await fetch(WEBAPP+'?action=getPortail&id='+encodeURIComponent(id)+'&mdp='+encodeURIComponent(mdp));
     const d = await r.json();
