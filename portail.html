@@ -89,6 +89,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <label class="form-label">Mot de passe</label>
       <input type="password" id="input-mdp" placeholder="••••••" autocomplete="current-password">
     </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <input type="checkbox" id="remember-me" checked style="width:16px;height:16px;accent-color:#2048F5;">
+      <label for="remember-me" style="font-size:13px;color:#666;">Se souvenir de moi</label>
+    </div>
     <button class="btn" onclick="seConnecter()">Se connecter</button>
     <p style="font-size:12px;color:#aaa;text-align:center;margin-top:16px;">Identifiants fournis par la direction de l'Immeuble 2i.</p>
   </div>
@@ -143,7 +147,16 @@ let session = null;
 
 const urlParams = new URLSearchParams(window.location.search);
 const idFromUrl = urlParams.get('id');
-if (idFromUrl) document.getElementById('input-id').value = decodeURIComponent(idFromUrl);
+if (idFromUrl) {
+  document.getElementById('input-id').value = decodeURIComponent(idFromUrl);
+} else {
+  const savedId = localStorage.getItem('2i_login_id');
+  if (savedId) {
+    document.getElementById('input-id').value = savedId;
+    const savedMdp = localStorage.getItem('2i_login_mdp_' + savedId);
+    if (savedMdp) document.getElementById('input-mdp').value = savedMdp;
+  }
+}
 
 async function seConnecter() {
   const id  = document.getElementById('input-id').value.trim();
@@ -153,6 +166,15 @@ async function seConnecter() {
     const res  = await fetch(WEBAPP_URL + '?action=getPortail&id=' + encodeURIComponent(id) + '&mdp=' + encodeURIComponent(mdp));
     const data = await res.json();
     if (data.success) {
+      // Mémoriser identifiant et mot de passe
+      const cb = document.getElementById('remember-me');
+      if (cb && cb.checked) {
+        localStorage.setItem('2i_login_id', id);
+        localStorage.setItem('2i_login_mdp_' + id, mdp);
+      } else {
+        localStorage.removeItem('2i_login_id');
+        localStorage.removeItem('2i_login_mdp_' + id);
+      }
       session = { id, ...data.locataire };
       document.getElementById('login-error').style.display = 'none';
       document.getElementById('screen-login').classList.remove('active');
@@ -262,36 +284,56 @@ async function chargerQuittances() {
 
 async function telechargerQuittance(moisSlug, datePaie, modePaie, montant) {
   const btn = document.getElementById('btn-' + moisSlug);
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-inline"></span>';
+  btn.disabled = true; btn.textContent = '...';
 
   try {
-    const res  = await fetch(WEBAPP_URL + '?action=genererQuittance&id=' + encodeURIComponent(session.id) +
-      '&moisSlug=' + moisSlug + '&datePaie=' + encodeURIComponent(datePaie) +
-      '&modePaie=' + encodeURIComponent(modePaie) + '&montant=' + montant);
-    const data = await res.json();
+    const params = {
+      action: 'genererQuittance',
+      id: session.id,
+      moisSlug: moisSlug,
+      datePaie: datePaie || '',
+      modePaie: modePaie || 'Dépôt bancaire',
+      montant: String(montant),
+      frequence: 'Mensuel',
+      nom: session.nom || '',
+      appt: session.appt || '',
+      zone: ''
+    };
 
-    if (data.success && data.pdf) {
-      // Télécharger le PDF
-      const binary = atob(data.pdf);
-      const bytes  = new Uint8Array(binary.length);
+    const qs = Object.keys(params)
+      .map(k => k + '=' + encodeURIComponent(params[k]))
+      .join('&');
+
+    const r = await fetch(WEBAPP_URL + '?' + qs);
+    const text = await r.text();
+    let d;
+    try { d = JSON.parse(text); }
+    catch(e) { alert('Réponse invalide: ' + text.substring(0,100)); btn.disabled=false; btn.textContent='Télécharger'; return; }
+
+    if (d.success && d.pdf) {
+      const binary = atob(d.pdf);
+      const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: 'application/pdf' });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = 'Quittance_' + moisLabel(moisSlug).replace(' ','_') + '.pdf';
+      const blob = new Blob([bytes], {type: 'application/pdf'});
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.target = '_blank';
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) {
+        a.download = 'Quittance_' + moisSlug + '.pdf';
+      }
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
     } else {
-      alert('Erreur lors de la génération. Réessayez.');
+      alert('Erreur: ' + JSON.stringify(d));
     }
   } catch(e) {
-    alert('Erreur de connexion.');
+    alert('Erreur: ' + e.message);
   }
-
-  btn.disabled = false;
-  btn.innerHTML = 'Télécharger';
+  btn.disabled = false; btn.textContent = 'Télécharger';
 }
 
 function chargerInfos() {
