@@ -510,59 +510,142 @@ async function annulerPaiement(row, nom) {
 async function genererQuittanceProprio(btn, idx) {
   const payes = locataires.filter(l => l.paye);
   const l = payes[idx];
-  if (!l) { alert('Locataire introuvable'); return; }
-
-  const today = new Date();
-  const m = today.getMonth();
-  const y = today.getFullYear();
-  const moisSlug = String(y) + String(m+1).padStart(2,'0');
-  const freq = (l.frequence || 'Mensuel').toString();
-  const nbMois = freq === 'Trimestriel' ? 3 : freq === 'Semestriel' ? 6 : 1;
-  const montantTotal = Math.round(l.loyer * nbMois);
-  const nomComplet = l.nom + (l.prenom ? ' ' + l.prenom : '');
-  const dateEmission = fmtDate(l.datePaie) || today.toLocaleDateString('fr-FR');
-  const modePaie = l.modePaie || 'Dépôt bancaire';
-  const appt = l.appt || '';
-  const zone = l.zone || '';
+  if (!l) { alert('Locataire introuvable (index=' + idx + ')'); return; }
 
   btn.textContent = '...'; btn.disabled = true;
 
   try {
-    const url = WEBAPP
-      + '?action=genererQuittance'
-      + '&id=proprio'
-      + '&moisSlug=' + encodeURIComponent(moisSlug)
-      + '&datePaie=' + encodeURIComponent(dateEmission)
-      + '&modePaie=' + encodeURIComponent(modePaie)
-      + '&montant=' + montantTotal
-      + '&frequence=' + encodeURIComponent(freq)
-      + '&nom=' + encodeURIComponent(nomComplet)
-      + '&appt=' + encodeURIComponent(appt)
-      + '&zone=' + encodeURIComponent(zone);
+    const today = new Date();
+    const m = today.getMonth();
+    const y = today.getFullYear();
+    const freq = (l.frequence || 'Mensuel').toString();
+    const nbMois = freq === 'Trimestriel' ? 3 : freq === 'Semestriel' ? 6 : 1;
+    const loyerMensuel = l.loyer;
+    const montantTotal = loyerMensuel * nbMois;
+    const nomComplet = l.nom + (l.prenom ? ' ' + l.prenom : '');
+    const appt = l.appt || '';
+    const zone = (l.zone || '').replace('Côté ','');
+    const modePaie = l.modePaie || 'Dépôt bancaire';
+    const dateEmission = fmtDate(l.datePaie) || today.toLocaleDateString('fr-FR');
+    const moisNoms = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+    const typeLabel = freq === 'Trimestriel' ? 'Trimestrielle' : freq === 'Semestriel' ? 'Semestrielle' : '';
 
-    const r = await fetch(url);
-    const d = await r.json();
+    // Dates
+    const dDebut = '01/' + String(m+1).padStart(2,'0') + '/' + y;
+    const finMoisIdx = (m + nbMois - 1) % 12;
+    const finAnnee = y + Math.floor((m + nbMois - 1) / 12);
+    const finJour = new Date(finAnnee, finMoisIdx+1, 0).getDate();
+    const dFin = finJour + '/' + String(finMoisIdx+1).padStart(2,'0') + '/' + finAnnee;
+    const reference = String(y) + String(m+1).padStart(2,'0') + appt;
 
-    if (d.success && d.pdf) {
-      const bin = atob(d.pdf);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      const blob = new Blob([bytes], {type: 'application/pdf'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      const tag = freq !== 'Mensuel' ? freq.substring(0,4) + '_' : '';
-      a.download = 'Quittance_' + tag + nomComplet.replace(/\s+/g,'_') + '_' + MOIS[m] + '_' + y + '.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      btn.textContent = '✓ OK';
-      setTimeout(() => { btn.textContent = '📄 PDF'; btn.disabled = false; }, 2000);
-    } else {
-      alert('Erreur PDF : ' + JSON.stringify(d));
-      btn.textContent = '📄 PDF'; btn.disabled = false;
+    const fmt = n => Math.round(n||0).toLocaleString('fr-FR') + ' Fr CFA';
+
+    // Lignes tableau
+    let lignes = '';
+    for (let mx = 0; mx < nbMois; mx++) {
+      const midx = (m + mx) % 12;
+      const yy = y + Math.floor((m + mx) / 12);
+      const ldm = new Date(yy, midx+1, 0).getDate();
+      const dm = '01/' + String(midx+1).padStart(2,'0') + '/' + yy;
+      const fm = ldm + '/' + String(midx+1).padStart(2,'0') + '/' + yy;
+      lignes += `<tr style="background:${mx%2===0?'#F8FAFF':'#fff'}">
+        <td style="padding:9px 14px;border-bottom:1px solid #E2E8F0">Loyer ${moisNoms[midx]} ${yy}</td>
+        ${nbMois>1?`<td style="padding:9px 14px;border-bottom:1px solid #E2E8F0;color:#475569;font-size:12px">${dm} au ${fm}</td>`:''}
+        <td style="padding:9px 14px;border-bottom:1px solid #E2E8F0;text-align:right;font-weight:600">${fmt(loyerMensuel)}</td>
+      </tr>`;
     }
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+body{font-family:Arial,sans-serif;max-width:680px;margin:40px auto;color:#0F172A;font-size:13px;line-height:1.6}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px;padding-bottom:20px;border-bottom:3px solid #2048F5}
+.logo{font-size:22px;font-weight:700;color:#2048F5}
+.logo-sub{font-size:11px;color:#94A3B8;margin-top:3px}
+.title{text-align:right}
+.title h1{font-size:18px;font-weight:700;color:#0F172A;margin:0}
+.badge{font-size:11px;background:#2048F5;color:#fff;padding:3px 10px;border-radius:99px;display:inline-block;margin-top:4px}
+.periode{font-size:12px;color:#475569;margin-top:4px}
+.ref{font-size:11px;color:#94A3B8}
+.parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}
+.partie{background:#F8FAFF;padding:14px;border-radius:10px}
+.partie.bailleur{border-left:4px solid #2048F5}
+.partie.locataire{border-left:4px solid #8220F5}
+.partie-label{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;margin-bottom:6px}
+.partie-nom{font-weight:700}
+.partie-sub{color:#475569;margin-top:2px}
+.declaration{background:#EEF2FF;padding:14px;border-radius:10px;margin-bottom:22px;color:#3C20F5;line-height:1.7}
+table{width:100%;border-collapse:collapse;margin-bottom:22px}
+thead tr{background:linear-gradient(135deg,#2048F5,#3C20F5);color:#fff}
+thead th{padding:10px 14px;text-align:left;font-size:12px}
+thead th:last-child{text-align:right}
+.total-row td{background:linear-gradient(135deg,#2048F5,#3C20F5);color:#fff;font-weight:700;padding:10px 14px}
+.total-row td:last-child{text-align:right}
+.meta{font-size:12px;color:#475569;margin-bottom:6px}
+.meta strong{font-weight:600}
+.legal{border:1px solid #E2E8F0;border-radius:8px;padding:11px 13px;font-size:11px;color:#94A3B8;margin-bottom:28px}
+.footer{display:flex;justify-content:space-between;font-size:11px;color:#BCB3F5;border-top:2px solid #EEF2FF;padding-top:10px}
+</style></head><body>
+<div class="header">
+  <div><div class="logo">2i Immobilier</div><div class="logo-sub">Palmeraies, Cocody / Abidjan, Côte d'Ivoire</div></div>
+  <div class="title">
+    <h1>QUITTANCE DE LOYER</h1>
+    ${typeLabel?`<div class="badge">${typeLabel}</div><br>`:''}
+    <div class="periode">Période du ${dDebut} au ${dFin}</div>
+    <div class="ref">Réf. : ${reference}</div>
+  </div>
+</div>
+<div class="parties">
+  <div class="partie bailleur">
+    <div class="partie-label">Bailleur</div>
+    <div class="partie-nom">Madame Diaby Djeneba</div>
+    <div class="partie-sub">Immeuble 2i — Palmeraies, Cocody, Abidjan</div>
+  </div>
+  <div class="partie locataire">
+    <div class="partie-label">Locataire</div>
+    <div class="partie-nom">${nomComplet}</div>
+    <div class="partie-sub">Appt ${appt}${zone?' — '+zone:''}</div>
+    <div class="partie-sub">Immeuble 2i, Palmeraies, Cocody</div>
+  </div>
+</div>
+<div class="declaration">
+  Je soussignée, Madame Diaby Djeneba, déclare avoir reçu de <strong>${nomComplet}</strong>,
+  locataire de l'appartement ${appt}${zone?' ('+zone+')':''}, la somme de
+  <strong>${fmt(montantTotal)}</strong>${nbMois>1?`, couvrant ${nbMois} mois (${typeLabel.toLowerCase()}),`:''}
+  pour la période du ${dDebut} au ${dFin}.
+</div>
+<table>
+  <thead><tr>
+    <th>Désignation</th>
+    ${nbMois>1?'<th>Période</th>':''}
+    <th>Montant</th>
+  </tr></thead>
+  <tbody>
+    ${lignes}
+    <tr><td style="padding:9px 14px;border-bottom:1px solid #E2E8F0;color:#475569"${nbMois>1?' colspan="2"':''}>Charges locatives</td><td style="padding:9px 14px;border-bottom:1px solid #E2E8F0;text-align:right;color:#475569">0 Fr CFA</td></tr>
+    <tr class="total-row"><td${nbMois>1?' colspan="2"':''}>${nbMois>1?`Total reçu (${nbMois} mois)`:'Total reçu'}</td><td>${fmt(montantTotal)}</td></tr>
+  </tbody>
+</table>
+<div class="meta"><strong>Mode de paiement :</strong> ${modePaie}</div>
+<div class="meta" style="margin-bottom:22px"><strong>Date d'émission :</strong> ${dateEmission}</div>
+<div class="legal">Quittance établie conformément à la loi ivoirienne n°77-1444 du 14 décembre 1977. Valable uniquement après encaissement effectif du loyer.</div>
+<div class="footer">
+  <span>Immeuble 2i — Palmeraies, Cocody / Abidjan, Côte d'Ivoire</span>
+  <span>${moisNoms[m]}${nbMois>1?' à '+moisNoms[finMoisIdx]+' '+finAnnee:' '+y} | Réf. ${reference}</span>
+</div>
+</body></html>`;
+
+    // Ouvrir dans une nouvelle fenêtre pour impression/téléchargement
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    // Déclencher impression après chargement
+    win.onload = () => { win.focus(); win.print(); };
+
+    btn.textContent = '✓ OK';
+    setTimeout(() => { btn.textContent = '📄 PDF'; btn.disabled = false; }, 2000);
+
   } catch(e) {
-    alert('Erreur connexion : ' + e.message);
+    alert('Erreur : ' + e.message);
     btn.textContent = '📄 PDF'; btn.disabled = false;
   }
 }
