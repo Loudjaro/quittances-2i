@@ -282,58 +282,128 @@ async function chargerQuittances() {
   }
 }
 
-async function telechargerQuittance(moisSlug, datePaie, modePaie, montant) {
+async async function telechargerQuittance(moisSlug, datePaie, modePaie, montant) {
   const btn = document.getElementById('btn-' + moisSlug);
   btn.disabled = true; btn.textContent = '...';
 
-  try {
-    const params = {
-      action: 'genererQuittance',
-      id: session.id,
-      moisSlug: moisSlug,
-      datePaie: datePaie || '',
-      modePaie: modePaie || 'Dépôt bancaire',
-      montant: String(montant),
-      frequence: 'Mensuel',
-      nom: session.nom || '',
-      appt: session.appt || '',
-      zone: ''
-    };
-
-    const qs = Object.keys(params)
-      .map(k => k + '=' + encodeURIComponent(params[k]))
-      .join('&');
-
-    const r = await fetch(WEBAPP_URL + '?' + qs);
-    const text = await r.text();
-    let d;
-    try { d = JSON.parse(text); }
-    catch(e) { alert('Réponse invalide: ' + text.substring(0,100)); btn.disabled=false; btn.textContent='Télécharger'; return; }
-
-    if (d.success && d.pdf) {
-      const binary = atob(d.pdf);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], {type: 'application/pdf'});
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.target = '_blank';
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (!isMobile) {
-        a.download = 'Quittance_' + moisSlug + '.pdf';
-      }
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-    } else {
-      alert('Erreur: ' + JSON.stringify(d));
-    }
-  } catch(e) {
-    alert('Erreur: ' + e.message);
+  if (!window.jspdf) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
   }
-  btn.disabled = false; btn.textContent = 'Télécharger';
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+    const y = parseInt(moisSlug.substring(0,4));
+    const m = parseInt(moisSlug.substring(4,6)) - 1;
+    const MOIS = ['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
+    const lastDay = new Date(y, m+1, 0).getDate();
+    const dDebut = '01/' + String(m+1).padStart(2,'0') + '/' + y;
+    const dFin = lastDay + '/' + String(m+1).padStart(2,'0') + '/' + y;
+    const nom = session.nom || '';
+    const appt = session.appt || '';
+    const ref = moisSlug + appt;
+    const fmt = n => Math.round(n||0).toLocaleString('fr-FR') + ' Fr CFA';
+    const W = 210, mg = 15;
+    let y0 = 0;
+
+    doc.setFillColor(32, 72, 245);
+    doc.rect(0, 0, W, 28, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(16); doc.setFont('helvetica','bold');
+    doc.text('2i Immobilier', mg, 11);
+    doc.setFontSize(8); doc.setFont('helvetica','normal');
+    doc.text('Palmeraies, Cocody / Abidjan, Cote d\'Ivoire', mg, 17);
+    doc.setFontSize(14); doc.setFont('helvetica','bold');
+    doc.text('QUITTANCE DE LOYER', W-mg, 11, {align:'right'});
+    doc.setTextColor(200,210,255); doc.setFontSize(8); doc.setFont('helvetica','normal');
+    doc.text('Periode du ' + dDebut + ' au ' + dFin, W-mg, 22, {align:'right'});
+    doc.text('Ref.: ' + ref, W-mg, 26, {align:'right'});
+
+    y0 = 36;
+    doc.setFillColor(248,250,255);
+    doc.rect(mg, y0, 82, 28, 'F');
+    doc.rect(W/2+2, y0, 82, 28, 'F');
+    doc.setDrawColor(32,72,245); doc.setLineWidth(0.8);
+    doc.line(mg, y0, mg, y0+28);
+    doc.setDrawColor(130,32,245);
+    doc.line(W/2+2, y0, W/2+2, y0+28);
+    doc.setLineWidth(0.2);
+    doc.setTextColor(148,163,184); doc.setFontSize(7); doc.setFont('helvetica','bold');
+    doc.text('BAILLEUR', mg+4, y0+6);
+    doc.text('LOCATAIRE', W/2+6, y0+6);
+    doc.setTextColor(15,23,42); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text('Madame Diaby Djeneba', mg+4, y0+12);
+    doc.text(nom, W/2+6, y0+12);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(71,85,105);
+    doc.text('Immeuble 2i - Palmeraies, Cocody', mg+4, y0+18);
+    doc.text('Abidjan, Cote d\'Ivoire', mg+4, y0+23);
+    doc.text('Appt ' + appt, W/2+6, y0+18);
+    doc.text('Immeuble 2i, Palmeraies, Cocody', W/2+6, y0+23);
+
+    y0 += 34;
+    doc.setFillColor(238,242,255);
+    doc.rect(mg, y0, W-2*mg, 16, 'F');
+    doc.setTextColor(60,32,245); doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+    const decl = 'Je soussignee, Madame Diaby Djeneba, declare avoir recu de ' + nom +
+      ', locataire de l\'appartement ' + appt +
+      ', la somme de ' + fmt(montant) + ' pour la periode du ' + dDebut + ' au ' + dFin + '.';
+    const lines = doc.splitTextToSize(decl, W-2*mg-8);
+    doc.text(lines, mg+4, y0+6);
+
+    y0 += 22;
+    doc.setFillColor(32,72,245);
+    doc.rect(mg, y0, W-2*mg, 8, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold');
+    doc.text('Designation', mg+3, y0+5.5);
+    doc.text('Montant', W-mg-3, y0+5.5, {align:'right'});
+
+    y0 += 8;
+    doc.setFillColor(248,250,255);
+    doc.rect(mg, y0, W-2*mg, 7, 'F');
+    doc.setTextColor(15,23,42); doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+    doc.text('Loyer mensuel - ' + MOIS[m] + ' ' + y, mg+3, y0+4.8);
+    doc.text(fmt(montant), W-mg-3, y0+4.8, {align:'right'});
+    doc.setDrawColor(226,232,240); doc.line(mg, y0+7, W-mg, y0+7);
+    y0 += 7;
+
+    doc.setFillColor(255,255,255);
+    doc.rect(mg, y0, W-2*mg, 7, 'F');
+    doc.setTextColor(71,85,105);
+    doc.text('Charges locatives', mg+3, y0+4.8);
+    doc.text('0 Fr CFA', W-mg-3, y0+4.8, {align:'right'});
+    doc.line(mg, y0+7, W-mg, y0+7);
+    y0 += 7;
+
+    doc.setFillColor(32,72,245);
+    doc.rect(mg, y0, W-2*mg, 8, 'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.text('Total recu', mg+3, y0+5.5);
+    doc.text(fmt(montant), W-mg-3, y0+5.5, {align:'right'});
+
+    y0 += 14;
+    doc.setTextColor(71,85,105); doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+    doc.text('Mode de paiement : ' + (modePaie||'Depot bancaire'), mg, y0);
+    doc.text('Date d\'emission : ' + (datePaie||''), mg, y0+6);
+
+    y0 += 14;
+    doc.setDrawColor(226,232,240); doc.setLineWidth(0.3);
+    doc.rect(mg, y0, W-2*mg, 10);
+    doc.setTextColor(148,163,184); doc.setFontSize(7);
+    doc.text('Quittance etablie conformement a la loi ivoirienne n77-1444 du 14 decembre 1977.', mg+3, y0+4);
+    doc.text('Valable uniquement apres encaissement effectif du loyer.', mg+3, y0+8);
+
+    doc.save('Quittance_' + nom.replace(/\s+/g,'_') + '_' + MOIS[m] + '_' + y + '.pdf');
+    btn.disabled = false; btn.textContent = 'Telecharger';
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+    btn.disabled = false; btn.textContent = 'Telecharger';
+  }
 }
 
 function chargerInfos() {
