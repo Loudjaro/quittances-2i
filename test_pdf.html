@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Test PDF</title></head>
+<body>
+<h2>Test generation quittance</h2>
+<button onclick="test('ABEID DJE','M1','150000','Mensuel')">ABEID DJE - Mensuel 150000</button><br><br>
+<button onclick="test('YAYA DAO ALPHA','21','780000','Trimestriel')">YAYA DAO - Trimestriel 780000</button><br><br>
+<button onclick="test('KONA AYA ANDREA FLORIANE','M3','450000','Trimestriel')">KONA AYA - Trimestriel 450000</button><br><br>
+<div id="result" style="margin-top:20px;color:red"></div>
+<script>
+const WEBAPP = 'https://script.google.com/macros/s/AKfycbztQJYlQINXq0WV2wHhTD0Yj6bysb9VwKEVCGM7y9qqYlM6d3je8s5yxrEcUQJtJJRV6w/exec';
+
+async function test(nom, appt, montant, freq) {
+  document.getElementById('result').textContent = 'Generation...';
+  const params = new URLSearchParams({
+    action: 'genererQuittance',
+    id: 'proprio',
+    moisSlug: '202604',
+    montant: montant,
+    frequence: freq,
+    nom: nom,
+    appt: appt
+  });
+  try {
+    const r = await fetch(WEBAPP + '?' + params.toString());
+    const d = await r.json();
+    if (d.success && d.pdf) {
+      const bin = atob(d.pdf);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], {type:'application/pdf'});
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      document.getElementById('result').textContent = 'OK - PDF ouvert';
+      document.getElementById('result').style.color = 'green';
+    } else {
+      document.getElementById('result').textContent = 'Erreur: ' + JSON.stringify(d);
+    }
+  } catch(e) {
+    document.getElementById('result').textContent = 'Erreur reseau: ' + e.message;
+  }
+}
+</script>
+</body>
+</html>
