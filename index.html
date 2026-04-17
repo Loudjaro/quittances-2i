@@ -280,6 +280,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- MODAL DÉPENSE -->
+<div class="modal-overlay" id="modal-depense">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-depense-titre">Nouvelle dépense</div>
+    <div class="form-group"><label class="form-label">Catégorie</label><select id="depense-cat"></select></div>
+    <div class="form-group"><label class="form-label">Description</label><input type="text" id="depense-desc" placeholder="Détail de la dépense"></div>
+    <div class="form-group"><label class="form-label">Montant (Fr CFA)</label><input type="number" id="depense-montant" placeholder="0"></div>
+    <div class="form-group"><label class="form-label">Observations</label><input type="text" id="depense-obs" placeholder="Optionnel"></div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-depense')">Annuler</button>
+      <button class="btn-save" onclick="sauvegarderDepense()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRANSFERT -->
+<div class="modal-overlay" id="modal-transfert">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Transfert Caisse 1 → Banque</div>
+    <div class="form-group"><label class="form-label">Montant à transférer (Fr CFA)</label><input type="number" id="transfert-montant" placeholder="0"></div>
+    <div class="form-group"><label class="form-label">Observations</label><input type="text" id="transfert-obs" placeholder="Optionnel"></div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-transfert')">Annuler</button>
+      <button class="btn-save" onclick="sauvegarderTransfert()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL SIGNALEMENT -->
 <div class="modal-overlay" id="modal-signal">
   <div class="modal">
@@ -412,15 +442,16 @@ async function actualiser() {
 }
 
 function navProprio(onglet) {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','travaux','Travaux','artisans','Artisans'], onglet, 'navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'], onglet, 'navProprio');
   if(onglet==='paiements') chargerPaiements();
   else if(onglet==='finances') chargerFinances();
+  else if(onglet==='tresorerie') chargerTresorerie();
   else if(onglet==='travaux') chargerTravaux();
   else if(onglet==='artisans') chargerArtisans();
 }
 
 function renderNav(items, active, fn) {
-  let h='<div class="nav">';
+  let h='<div class="nav" style="overflow-x:auto;">';
   for(let i=0;i<items.length;i+=2) {
     h+=`<button class="nav-btn ${items[i]===active?'active':''}" data-onglet="${items[i]}" onclick="${fn}('${items[i]}')">${items[i+1]}</button>`;
   }
@@ -429,7 +460,7 @@ function renderNav(items, active, fn) {
 
 // PAIEMENTS
 function chargerPaiements() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','travaux','Travaux','artisans','Artisans'],'paiements','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'],'paiements','navProprio');
   const payes=locataires.filter(l=>l.paye);
   const nonPayes=locataires.filter(l=>!l.paye);
   const montant=payes.reduce((s,l)=>s+l.loyer,0);
@@ -487,9 +518,10 @@ function chargerPaiements() {
         </div>
         <div class="loc-actions">
           <select class="mode-select" id="mode-${l.row}">
+            <option value="Mobile Money">Mobile Money</option>
+            <option value="Espèces">Espèces</option>
             <option value="Dépôt bancaire">Dépôt bancaire</option>
             <option value="Virement bancaire">Virement bancaire</option>
-            <option value="Mobile Money">Mobile Money</option>
           </select>
           <button class="btn-blue" onclick="validerPaiement(${l.row},'${l.nom} ${l.prenom}')">✓ Valider</button>
         </div>
@@ -733,7 +765,7 @@ function telechargerQuittanceHTML() {
 
 // FINANCES
 function chargerFinances() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','travaux','Travaux','artisans','Artisans'],'finances','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'],'finances','navProprio');
   const enc=locataires.filter(l=>l.paye).reduce((s,l)=>s+l.loyer,0);
   const M=periodeF==='mensuel', k=M?1:12;
   const L=LOYER_TH*k, C=CHARGES*k, P=Math.round(LOYER_TH*.05)*k, N=L-C-P;
@@ -760,9 +792,148 @@ function chargerFinances() {
   </div>`;
 }
 
+// TRÉSORERIE
+async function chargerTresorerie() {
+  document.getElementById('proprio-nav').innerHTML = renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'],'tresorerie','navProprio');
+  document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
+
+  try {
+    const r = await get('getCaisses');
+    const d = r.data || { caisse1:{solde:0,operations:[]}, caisse2:{solde:0,operations:[]} };
+    const c1 = d.caisse1, c2 = d.caisse2;
+
+    let h = '<div style="padding:14px;">';
+
+    // Soldes
+    h += '<div class="metrics">';
+    h += `<div class="metric" style="border-left:4px solid #16A34A;">
+      <div class="metric-label">Caisse 1 — Mobile Money/Espèces</div>
+      <div class="metric-val ${c1.solde>=0?'green':'red'}">${fmt(c1.solde)}</div>
+      <div class="metric-sub">Fr CFA (Maman Diaby)</div>
+    </div>`;
+    h += `<div class="metric" style="border-left:4px solid var(--blue);">
+      <div class="metric-label">Caisse 2 — Banque</div>
+      <div class="metric-val ${c2.solde>=0?'green':'red'}">${fmt(c2.solde)}</div>
+      <div class="metric-sub">Fr CFA</div>
+    </div>`;
+    h += `<div class="metric full" style="border-left:4px solid var(--violet);">
+      <div class="metric-label">Trésorerie totale</div>
+      <div class="metric-val ${(c1.solde+c2.solde)>=0?'green':'red'}">${fmt(c1.solde+c2.solde)}</div>
+      <div class="metric-sub">Fr CFA</div>
+    </div>`;
+    h += '</div>';
+
+    // Boutons actions
+    h += `<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="btn-blue" onclick="openModalDepense(1)">+ Dépense Caisse 1</button>
+      <button class="btn-blue" onclick="openModalDepense(2)">+ Dépense Banque</button>
+      <button class="btn-violet" onclick="openModalTransfert()">↗ Transfert C1→Banque</button>
+    </div>`;
+
+    // Opérations Caisse 1
+    h += `<div class="stitle">Caisse 1 — Dernières opérations</div>`;
+    h += '<div class="card">';
+    if (!c1.operations.length) {
+      h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucune opération</p>';
+    } else {
+      c1.operations.forEach(op => {
+        const isEntree = op.entree > 0;
+        h += `<div class="row">
+          <div>
+            <div style="font-size:13px;font-weight:500;">${op.description}</div>
+            <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:13px;font-weight:600;color:${isEntree?'var(--green)':'var(--red)'};">
+              ${isEntree?'+':'-'}${fmt(isEntree?op.entree:op.sortie)}
+            </div>
+            <div style="font-size:10px;color:var(--gray-400);">Solde: ${fmt(op.solde)}</div>
+          </div>
+        </div>`;
+      });
+    }
+    h += '</div>';
+
+    // Opérations Caisse 2
+    h += `<div class="stitle" style="margin-top:14px;">Caisse 2 — Banque — Dernières opérations</div>`;
+    h += '<div class="card">';
+    if (!c2.operations.length) {
+      h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucune opération</p>';
+    } else {
+      c2.operations.forEach(op => {
+        const isEntree = op.entree > 0;
+        h += `<div class="row">
+          <div>
+            <div style="font-size:13px;font-weight:500;">${op.description}</div>
+            <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:13px;font-weight:600;color:${isEntree?'var(--green)':'var(--red)'};">
+              ${isEntree?'+':'-'}${fmt(isEntree?op.entree:op.sortie)}
+            </div>
+            <div style="font-size:10px;color:var(--gray-400);">Solde: ${fmt(op.solde)}</div>
+          </div>
+        </div>`;
+      });
+    }
+    h += '</div>';
+    h += '<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
+    document.getElementById('proprio-content').innerHTML = h;
+
+  } catch(e) {
+    document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><p style="color:var(--red);">Erreur: ' + e.message + '</p></div>';
+  }
+}
+
+// Modals Trésorerie
+let _caisseActive = 1;
+
+function openModalDepense(caisse) {
+  _caisseActive = caisse;
+  document.getElementById('modal-depense-titre').textContent = 
+    caisse === 1 ? 'Dépense Caisse 1 (Mobile Money/Espèces)' : 'Dépense Caisse 2 (Banque)';
+  
+  const cats1 = ['Gardien','Eau/Electricite','Petits travaux','Fournitures','Transport','Autre'];
+  const cats2 = ['Taxe fonciere','Assurance','Gros travaux','Autre depense'];
+  const cats = caisse === 1 ? cats1 : cats2;
+  const sel = document.getElementById('depense-cat');
+  sel.innerHTML = cats.map(c => `<option>${c}</option>`).join('');
+  
+  document.getElementById('depense-desc').value = '';
+  document.getElementById('depense-montant').value = '';
+  document.getElementById('depense-obs').value = '';
+  openModal('modal-depense');
+}
+
+async function sauvegarderDepense() {
+  const cat = document.getElementById('depense-cat').value;
+  const desc = document.getElementById('depense-desc').value || cat;
+  const montant = parseInt(document.getElementById('depense-montant').value)||0;
+  const obs = document.getElementById('depense-obs').value;
+  if (!montant) { alert('Veuillez saisir un montant.'); return; }
+  closeModal('modal-depense');
+  await post({ action:'addDepense', caisse:_caisseActive, categorie:cat, description:desc, montant:String(montant), observations:obs });
+  chargerTresorerie();
+}
+
+function openModalTransfert() {
+  document.getElementById('transfert-montant').value = '';
+  document.getElementById('transfert-obs').value = '';
+  openModal('modal-transfert');
+}
+
+async function sauvegarderTransfert() {
+  const montant = parseInt(document.getElementById('transfert-montant').value)||0;
+  const obs = document.getElementById('transfert-obs').value;
+  if (!montant) { alert('Veuillez saisir un montant.'); return; }
+  closeModal('modal-transfert');
+  await post({ action:'addTransfert', montant:String(montant), observations:obs });
+  chargerTresorerie();
+}
+
 // TRAVAUX
 function chargerTravaux() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','travaux','Travaux','artisans','Artisans'],'travaux','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'],'travaux','navProprio');
   let h=`<div style="padding:14px;"><button class="btn-primary" style="margin-bottom:14px;" onclick="openModal('modal-travail')">+ Nouveau travail</button>`;
   if(!travaux.length) { h+='<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:20px;">Aucun travail enregistré.</p>'; }
   else {
@@ -792,7 +963,7 @@ function travailCard(t) {
 
 // ARTISANS
 function chargerArtisans() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','travaux','Travaux','artisans','Artisans'],'artisans','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'],'artisans','navProprio');
   let h=`<div style="padding:14px;"><button class="btn-primary" style="margin-bottom:14px;" onclick="openModal('modal-artisan')">+ Ajouter un artisan</button>`;
   artisans.forEach(a=>{
     const i2=a.nom.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
