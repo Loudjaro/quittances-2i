@@ -463,7 +463,13 @@ function chargerPaiements() {
   document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'],'paiements','navProprio');
   const payes=locataires.filter(l=>l.paye);
   const nonPayes=locataires.filter(l=>!l.paye);
-  const montant=payes.reduce((s,l)=>s+l.loyer,0);
+  // Montant réel = loyer × nbMois selon fréquence
+  const FREQ_REF = { 'M3': 'Trimestriel', '21': 'Trimestriel' };
+  const montant = payes.reduce((s,l) => {
+    const freq = (l.frequence || FREQ_REF[l.appt] || 'Mensuel').toString().trim();
+    const nb = freq === 'Trimestriel' ? 3 : freq === 'Semestriel' ? 6 : 1;
+    return s + l.loyer * nb;
+  }, 0);
   const pct=locataires.length?Math.round(payes.length/locataires.length*100):0;
 
   let h=`<div style="padding:14px;">
@@ -490,7 +496,7 @@ function chargerPaiements() {
             <div class="avatar av-green">${ini(l.nom+' '+l.prenom)}</div>
             <div>
               <div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div>
-              <div class="loc-sub">Appt ${l.appt} · ${fmt((l.frequence==='Trimestriel'?3:l.frequence==='Semestriel'?6:1)*l.loyer)} Fr · ${fmtDate(l.datePaie)}${l.frequence&&l.frequence!=='Mensuel'?' ('+l.frequence.toLowerCase()+')':''}</div>
+              <div class="loc-sub">Appt ${l.appt} · ${fmt(((l.frequence||FREQ_REF[l.appt]||'Mensuel')==='Trimestriel'?3:(l.frequence||FREQ_REF[l.appt]||'Mensuel')==='Semestriel'?6:1)*l.loyer)} Fr · ${fmtDate(l.datePaie)}${(l.frequence||FREQ_REF[l.appt])&&(l.frequence||FREQ_REF[l.appt])!=='Mensuel'?' ('+(l.frequence||FREQ_REF[l.appt]).toLowerCase()+')':''}</div>
             </div>
           </div>
           <span class="pill pill-green">Payé</span>
