@@ -798,24 +798,37 @@ async function chargerTresorerie() {
   document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
 
   try {
+    // Loyers depuis locataires[] déjà en mémoire
+    const loyersC1 = [], loyersC2 = [];
+    let encaisC1 = 0, encaisC2 = 0;
+    locataires.filter(l => l.paye).forEach(l => {
+      const mode = (l.modePaie || '').toUpperCase();
+      const estBanque = mode.includes('VIREMENT');
+      const loyer = l.loyer;
+      const nom = l.nom + (l.prenom ? ' ' + l.prenom : '');
+      const entry = {
+        date: fmtDate(l.datePaie),
+        categorie: l.modePaie || 'Non spécifié',
+        description: 'Loyer ' + nom + ' - Appt ' + l.appt,
+        entree: loyer
+      };
+      if (estBanque) { encaisC2 += loyer; loyersC2.push(entry); }
+      else           { encaisC1 += loyer; loyersC1.push(entry); }
+    });
+
+    // Opérations manuelles depuis la WebApp
     const r = await get('getCaisses');
     const d = r.data || { caisse1:{solde:0,operations:[]}, caisse2:{solde:0,operations:[]} };
     const c1 = d.caisse1, c2 = d.caisse2;
 
     let h = '<div style="padding:14px;">';
 
-    // Encaissements loyers du mois
-    const encaisC1 = c1.encaissementsMois || 0;
-    const encaisC2 = c2.encaissementsMois || 0;
-    const loyersC1 = c1.loyers || [];
-    const loyersC2 = c2.loyers || [];
-
     // Soldes
     h += '<div class="metrics">';
     h += `<div class="metric" style="border-left:4px solid #16A34A;">
       <div class="metric-label">Caisse 1 — Mobile Money/Espèces</div>
       <div class="metric-val ${c1.solde>=0?'green':'red'}">${fmt(c1.solde)}</div>
-      <div class="metric-sub">Fr CFA (Maman Diaby)</div>
+      <div class="metric-sub">Fr CFA · Maman Diaby</div>
     </div>`;
     h += `<div class="metric" style="border-left:4px solid var(--blue);">
       <div class="metric-label">Caisse 2 — Banque</div>
@@ -827,64 +840,54 @@ async function chargerTresorerie() {
       <div class="metric-val ${(c1.solde+c2.solde)>=0?'green':'red'}">${fmt(c1.solde+c2.solde)}</div>
       <div class="metric-sub">Fr CFA</div>
     </div>`;
-    // Encaissements loyers
     if (encaisC1 > 0 || encaisC2 > 0) {
       h += `<div class="metric" style="border-left:4px solid #16A34A;">
         <div class="metric-label">Loyers encaissés Caisse 1</div>
         <div class="metric-val green">${fmt(encaisC1)}</div>
-        <div class="metric-sub">${loyersC1.length} locataire(s) ce cycle</div>
+        <div class="metric-sub">${loyersC1.length} locataire(s)</div>
       </div>`;
       h += `<div class="metric" style="border-left:4px solid var(--blue);">
         <div class="metric-label">Loyers encaissés Caisse 2</div>
         <div class="metric-val green">${fmt(encaisC2)}</div>
-        <div class="metric-sub">${loyersC2.length} locataire(s) ce cycle</div>
+        <div class="metric-sub">${loyersC2.length} locataire(s)</div>
       </div>`;
     }
     h += '</div>';
 
-    // Boutons actions
+    // Actions
     h += `<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
       <button class="btn-blue" onclick="openModalDepense(1)">+ Dépense Caisse 1</button>
       <button class="btn-blue" onclick="openModalDepense(2)">+ Dépense Banque</button>
       <button class="btn-violet" onclick="openModalTransfert()">↗ Transfert C1→Banque</button>
     </div>`;
 
-    // Opérations Caisse 1
-    h += `<div class="stitle">Caisse 1 — Loyers encaissés (cycle en cours)</div>`;
-    h += '<div class="card">';
+    // Loyers Caisse 1
+    h += '<div class="stitle">Caisse 1 — Loyers encaissés ce cycle</div><div class="card">';
     if (!loyersC1.length) {
-      h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucun loyer encaissé en Caisse 1</p>';
+      h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucun loyer en Caisse 1</p>';
     } else {
       loyersC1.forEach(op => {
         h += `<div class="row">
-          <div>
-            <div style="font-size:13px;font-weight:500;">${op.description}</div>
-            <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:13px;font-weight:600;color:var(--green);">+${fmt(op.entree)}</div>
-          </div>
+          <div><div style="font-size:13px;font-weight:500;">${op.description}</div>
+          <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div></div>
+          <div style="font-size:13px;font-weight:600;color:var(--green);">+${fmt(op.entree)}</div>
         </div>`;
       });
     }
     h += '</div>';
 
-    h += `<div class="stitle" style="margin-top:14px;">Caisse 1 — Dépenses et opérations</div>`;
-    h += '<div class="card">';
-    if (!c1.operations.length) {
+    // Dépenses Caisse 1
+    h += '<div class="stitle" style="margin-top:14px;">Caisse 1 — Dépenses et opérations</div><div class="card">';
+    if (!c1.operations || !c1.operations.length) {
       h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucune opération</p>';
     } else {
       c1.operations.forEach(op => {
-        const isEntree = op.entree > 0;
+        const isE = op.entree > 0;
         h += `<div class="row">
-          <div>
-            <div style="font-size:13px;font-weight:500;">${op.description}</div>
-            <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div>
-          </div>
+          <div><div style="font-size:13px;font-weight:500;">${op.description}</div>
+          <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div></div>
           <div style="text-align:right;">
-            <div style="font-size:13px;font-weight:600;color:${isEntree?'var(--green)':'var(--red)'};">
-              ${isEntree?'+':'-'}${fmt(isEntree?op.entree:op.sortie)}
-            </div>
+            <div style="font-size:13px;font-weight:600;color:${isE?'var(--green)':'var(--red)'};">${isE?'+':'-'}${fmt(isE?op.entree:op.sortie)}</div>
             <div style="font-size:10px;color:var(--gray-400);">Solde: ${fmt(op.solde)}</div>
           </div>
         </div>`;
@@ -892,48 +895,40 @@ async function chargerTresorerie() {
     }
     h += '</div>';
 
-    // Opérations Caisse 2
-    h += `<div class="stitle" style="margin-top:14px;">Caisse 2 — Loyers encaissés (cycle en cours)</div>`;
-    h += '<div class="card">';
+    // Loyers Caisse 2
+    h += '<div class="stitle" style="margin-top:14px;">Caisse 2 — Loyers encaissés ce cycle</div><div class="card">';
     if (!loyersC2.length) {
-      h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucun loyer encaissé en Caisse 2</p>';
+      h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucun loyer en Caisse 2</p>';
     } else {
       loyersC2.forEach(op => {
         h += `<div class="row">
-          <div>
-            <div style="font-size:13px;font-weight:500;">${op.description}</div>
-            <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:13px;font-weight:600;color:var(--green);">+${fmt(op.entree)}</div>
-          </div>
+          <div><div style="font-size:13px;font-weight:500;">${op.description}</div>
+          <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div></div>
+          <div style="font-size:13px;font-weight:600;color:var(--green);">+${fmt(op.entree)}</div>
         </div>`;
       });
     }
     h += '</div>';
 
-    h += `<div class="stitle" style="margin-top:14px;">Caisse 2 — Banque — Dépenses et opérations</div>`;
-    h += '<div class="card">';
-    if (!c2.operations.length) {
+    // Dépenses Caisse 2
+    h += '<div class="stitle" style="margin-top:14px;">Caisse 2 — Banque — Dépenses et opérations</div><div class="card">';
+    if (!c2.operations || !c2.operations.length) {
       h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucune opération</p>';
     } else {
       c2.operations.forEach(op => {
-        const isEntree = op.entree > 0;
+        const isE = op.entree > 0;
         h += `<div class="row">
-          <div>
-            <div style="font-size:13px;font-weight:500;">${op.description}</div>
-            <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div>
-          </div>
+          <div><div style="font-size:13px;font-weight:500;">${op.description}</div>
+          <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div></div>
           <div style="text-align:right;">
-            <div style="font-size:13px;font-weight:600;color:${isEntree?'var(--green)':'var(--red)'};">
-              ${isEntree?'+':'-'}${fmt(isEntree?op.entree:op.sortie)}
-            </div>
+            <div style="font-size:13px;font-weight:600;color:${isE?'var(--green)':'var(--red)'};">${isE?'+':'-'}${fmt(isE?op.entree:op.sortie)}</div>
             <div style="font-size:10px;color:var(--gray-400);">Solde: ${fmt(op.solde)}</div>
           </div>
         </div>`;
       });
     }
     h += '</div>';
+
     h += '<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
     document.getElementById('proprio-content').innerHTML = h;
 
