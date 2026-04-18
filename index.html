@@ -827,20 +827,29 @@ async function chargerTresorerie() {
     let h = '<div style="padding:14px;">';
 
     // Soldes
+    // Soldes réels = encaissements loyers + opérations manuelles (entrées - sorties)
+    const depC1man = (c1.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
+    const entC1man = (c1.operations||[]).reduce((s,o)=>s+(o.entree||0),0);
+    const depC2man = (c2.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
+    const entC2man = (c2.operations||[]).reduce((s,o)=>s+(o.entree||0),0);
+    const soldeReel1 = encaisC1 + entC1man - depC1man;
+    const soldeReel2 = encaisC2 + entC2man - depC2man;
+    const soldeTotal = soldeReel1 + soldeReel2;
+
     h += '<div class="metrics">';
     h += `<div class="metric" style="border-left:4px solid #16A34A;">
       <div class="metric-label">Caisse 1 — Mobile Money/Espèces</div>
-      <div class="metric-val ${c1.solde>=0?'green':'red'}">${fmt(c1.solde)}</div>
+      <div class="metric-val ${soldeReel1>=0?'green':'red'}">${fmt(soldeReel1)}</div>
       <div class="metric-sub">Fr CFA · Maman Diaby</div>
     </div>`;
     h += `<div class="metric" style="border-left:4px solid var(--blue);">
       <div class="metric-label">Caisse 2 — Banque</div>
-      <div class="metric-val ${c2.solde>=0?'green':'red'}">${fmt(c2.solde)}</div>
+      <div class="metric-val ${soldeReel2>=0?'green':'red'}">${fmt(soldeReel2)}</div>
       <div class="metric-sub">Fr CFA</div>
     </div>`;
     h += `<div class="metric full" style="border-left:4px solid var(--violet);">
       <div class="metric-label">Trésorerie totale</div>
-      <div class="metric-val ${(c1.solde+c2.solde)>=0?'green':'red'}">${fmt(c1.solde+c2.solde)}</div>
+      <div class="metric-val ${soldeTotal>=0?'green':'red'}">${fmt(soldeTotal)}</div>
       <div class="metric-sub">Fr CFA</div>
     </div>`;
     if (encaisC1 > 0 || encaisC2 > 0) {
@@ -940,13 +949,18 @@ async function chargerTresorerie() {
 
     // Récapitulatif global
     const totalEncais = encaisC1 + encaisC2;
-    const totalDep = (c1.operations||[]).reduce((s,o)=>s+(o.sortie||0),0) +
-                     (c2.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
+    const totalDepenses = depC1man + depC2man;
+    const resultatNet = totalEncais - totalDepenses;
     h += `<div class="card" style="margin-top:14px;background:var(--gray-100);">
       <div class="card-title">Récapitulatif du mois</div>
-      <div class="row"><span class="row-label">Total loyers encaissés</span><span class="row-val pos">+ ${fmt(totalEncais)} Fr</span></div>
-      <div class="row"><span class="row-label">Total dépenses</span><span class="row-val neg">- ${fmt(totalDep)} Fr</span></div>
-      <div class="row total"><span>Résultat net</span><span class="row-val ${totalEncais-totalDep>=0?'pos':'neg'}">${fmt(totalEncais-totalDep)} Fr</span></div>
+      <div class="row"><span class="row-label">Loyers encaissés Caisse 1</span><span class="row-val pos">+ ${fmt(encaisC1)} Fr</span></div>
+      <div class="row"><span class="row-label">Loyers encaissés Caisse 2</span><span class="row-val pos">+ ${fmt(encaisC2)} Fr</span></div>
+      <div class="row"><span class="row-label">Total loyers encaissés</span><span class="row-val pos" style="font-weight:700;">+ ${fmt(totalEncais)} Fr</span></div>
+      <div class="row"><span class="row-label">Dépenses Caisse 1</span><span class="row-val neg">- ${fmt(depC1man)} Fr</span></div>
+      <div class="row"><span class="row-label">Dépenses Caisse 2</span><span class="row-val neg">- ${fmt(depC2man)} Fr</span></div>
+      <div class="row"><span class="row-label">Total dépenses</span><span class="row-val neg" style="font-weight:700;">- ${fmt(totalDepenses)} Fr</span></div>
+      <div class="row total"><span>Résultat net du mois</span><span class="row-val ${resultatNet>=0?'pos':'neg'}">${fmt(resultatNet)} Fr</span></div>
+      <div class="row total"><span>Trésorerie totale</span><span class="row-val ${soldeTotal>=0?'pos':'neg'}">${fmt(soldeTotal)} Fr</span></div>
     </div>`;
 
     h += '<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
