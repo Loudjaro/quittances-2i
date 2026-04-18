@@ -807,7 +807,12 @@ async function chargerTresorerie() {
       // Caisse 1 = Mobile Money + Espèces uniquement
       // Caisse 2 = tout ce qui contient VIRE ou DEPOT ou DÉPÔT
       const estBanque = mode.includes('VIRE') || mode.includes('DEPOT') || mode.includes('DÉPÔT');
-      const freqL = (l.frequence || 'Mensuel').toString();
+      // Fréquences connues — liste de référence par appartement
+      const FREQ_REF = {
+        'M3': 'Trimestriel',  // KONAN AYA
+        '21': 'Trimestriel',  // YAYA DAO
+      };
+      const freqL = (l.frequence || FREQ_REF[l.appt] || 'Mensuel').toString().trim();
       const nbMoisL = freqL === 'Trimestriel' ? 3 : freqL === 'Semestriel' ? 6 : 1;
       const loyer = l.loyer * nbMoisL;
       const nom = l.nom + (l.prenom ? ' ' + l.prenom : '');
