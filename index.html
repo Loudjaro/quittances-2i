@@ -805,7 +805,8 @@ async function chargerTresorerie() {
       const mode = (l.modePaie || '').toUpperCase();
       // Caisse 2 = Virement bancaire + Dépôt bancaire
       // Caisse 1 = Mobile Money + Espèces uniquement
-      const estBanque = mode.includes('VIREMENT') || mode.includes('DEPOT') || mode.includes('DÉPÔT');
+      // Caisse 2 = tout ce qui contient VIRE ou DEPOT ou DÉPÔT
+      const estBanque = mode.includes('VIRE') || mode.includes('DEPOT') || mode.includes('DÉPÔT');
       const loyer = l.loyer;
       const nom = l.nom + (l.prenom ? ' ' + l.prenom : '');
       const entry = {
@@ -875,6 +876,7 @@ async function chargerTresorerie() {
           <div style="font-size:13px;font-weight:600;color:var(--green);">+${fmt(op.entree)}</div>
         </div>`;
       });
+      h += `<div class="row total"><span>Total encaissé Caisse 1</span><span class="row-val pos">+ ${fmt(encaisC1)} Fr</span></div>`;
     }
     h += '</div>';
 
@@ -883,6 +885,7 @@ async function chargerTresorerie() {
     if (!c1.operations || !c1.operations.length) {
       h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucune opération</p>';
     } else {
+      const depC1 = c1.operations.reduce((s,o)=>s+(o.sortie||0),0);
       c1.operations.forEach(op => {
         const isE = op.entree > 0;
         h += `<div class="row">
@@ -894,6 +897,7 @@ async function chargerTresorerie() {
           </div>
         </div>`;
       });
+      h += `<div class="row total"><span>Total dépenses Caisse 1</span><span class="row-val neg">- ${fmt(depC1)} Fr</span></div>`;
     }
     h += '</div>';
 
@@ -909,6 +913,7 @@ async function chargerTresorerie() {
           <div style="font-size:13px;font-weight:600;color:var(--green);">+${fmt(op.entree)}</div>
         </div>`;
       });
+      h += `<div class="row total"><span>Total encaissé Caisse 2</span><span class="row-val pos">+ ${fmt(encaisC2)} Fr</span></div>`;
     }
     h += '</div>';
 
@@ -917,6 +922,7 @@ async function chargerTresorerie() {
     if (!c2.operations || !c2.operations.length) {
       h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucune opération</p>';
     } else {
+      const depC2 = c2.operations.reduce((s,o)=>s+(o.sortie||0),0);
       c2.operations.forEach(op => {
         const isE = op.entree > 0;
         h += `<div class="row">
@@ -928,8 +934,20 @@ async function chargerTresorerie() {
           </div>
         </div>`;
       });
+      h += `<div class="row total"><span>Total dépenses Caisse 2</span><span class="row-val neg">- ${fmt(depC2)} Fr</span></div>`;
     }
     h += '</div>';
+
+    // Récapitulatif global
+    const totalEncais = encaisC1 + encaisC2;
+    const totalDep = (c1.operations||[]).reduce((s,o)=>s+(o.sortie||0),0) +
+                     (c2.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
+    h += `<div class="card" style="margin-top:14px;background:var(--gray-100);">
+      <div class="card-title">Récapitulatif du mois</div>
+      <div class="row"><span class="row-label">Total loyers encaissés</span><span class="row-val pos">+ ${fmt(totalEncais)} Fr</span></div>
+      <div class="row"><span class="row-label">Total dépenses</span><span class="row-val neg">- ${fmt(totalDep)} Fr</span></div>
+      <div class="row total"><span>Résultat net</span><span class="row-val ${totalEncais-totalDep>=0?'pos':'neg'}">${fmt(totalEncais-totalDep)} Fr</span></div>
+    </div>`;
 
     h += '<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
     document.getElementById('proprio-content').innerHTML = h;
