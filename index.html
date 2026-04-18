@@ -803,7 +803,9 @@ async function chargerTresorerie() {
     let encaisC1 = 0, encaisC2 = 0;
     locataires.filter(l => l.paye).forEach(l => {
       const mode = (l.modePaie || '').toUpperCase();
-      const estBanque = mode.includes('VIREMENT');
+      // Caisse 2 = Virement bancaire + Dépôt bancaire
+      // Caisse 1 = Mobile Money + Espèces uniquement
+      const estBanque = mode.includes('VIREMENT') || mode.includes('DEPOT') || mode.includes('DÉPÔT');
       const loyer = l.loyer;
       const nom = l.nom + (l.prenom ? ' ' + l.prenom : '');
       const entry = {
