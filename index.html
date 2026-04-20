@@ -280,6 +280,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- MODAL NOUVEAU MESSAGE -->
+<div class="modal-overlay" id="modal-nouveau-message">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nouveau message</div>
+    <div class="form-group"><label class="form-label">Destinataire</label>
+      <select id="msg-dest" onchange="updateMsgAppt()"></select>
+    </div>
+    <div class="form-group"><label class="form-label">Type</label>
+      <select id="msg-type">
+        <option>Relance loyer</option>
+        <option>Avis de travaux</option>
+        <option>Renouvellement de bail</option>
+        <option>Communication générale</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Objet</label>
+      <input type="text" id="msg-objet" placeholder="Objet du message">
+    </div>
+    <div class="form-group"><label class="form-label">Message</label>
+      <textarea id="msg-texte" placeholder="Votre message..." style="height:120px;"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-nouveau-message')">Annuler</button>
+      <button class="btn-save" onclick="envoyerNouveauMessage()">Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RÉPONDRE -->
+<div class="modal-overlay" id="modal-repondre">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-repondre-titre">Répondre</div>
+    <input type="hidden" id="rep-appt">
+    <input type="hidden" id="rep-dest">
+    <div class="form-group"><label class="form-label">Message</label>
+      <textarea id="rep-texte" placeholder="Votre réponse..." style="height:120px;"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-repondre')">Annuler</button>
+      <button class="btn-save" onclick="envoyerReponse()">Envoyer</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL DÉPENSE -->
 <div class="modal-overlay" id="modal-depense">
   <div class="modal">
@@ -338,7 +384,7 @@ const PROPRIO = {
   'proprio_musandji': {mdp:'Musandji2i2026', nom:'Monsieur Musandji Nzanza Roger'}
 };
 
-let session=null, locataires=[], travaux=[], artisans=[], travailRow=null, periodeF='mensuel';
+let session=null, locataires=[], travaux=[], artisans=[], travailRow=null, periodeF='mensuel', _nonLusProps=0, _messages=[];
 
 // ── UTILS ─────────────────────────────────────────────────────
 const fmt = n => Math.round(n||0).toLocaleString('fr-FR');
@@ -424,8 +470,12 @@ async function ouvrirProprio() {
   document.getElementById('topbar-sub').textContent=session.nom;
   document.getElementById('sync-btn').style.display='block';
   chargerPaiements();
-  const [r1,r2,r3]=await Promise.all([get('getLocataires'),get('getTravaux'),get('getArtisans')]);
+  const [r1,r2,r3,r4]=await Promise.all([
+    get('getLocataires'), get('getTravaux'), get('getArtisans'), get('getMessages')
+  ]);
   locataires=r1.data||[]; travaux=r2.data||[]; artisans=r3.data||[];
+  _messages = r4.messages||[];
+  _nonLusProps = _messages.filter(m=>m.expediteur!=='Propriétaire'&&m.lu==='Non').length;
   chargerPaiements();
 }
 
@@ -442,10 +492,11 @@ async function actualiser() {
 }
 
 function navProprio(onglet) {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'], onglet, 'navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'], onglet, 'navProprio');
   if(onglet==='paiements') chargerPaiements();
   else if(onglet==='finances') chargerFinances();
   else if(onglet==='tresorerie') chargerTresorerie();
+  else if(onglet==='messages') chargerMessages();
   else if(onglet==='travaux') chargerTravaux();
   else if(onglet==='artisans') chargerArtisans();
 }
@@ -453,14 +504,17 @@ function navProprio(onglet) {
 function renderNav(items, active, fn) {
   let h='<div class="nav" style="overflow-x:auto;">';
   for(let i=0;i<items.length;i+=2) {
-    h+=`<button class="nav-btn ${items[i]===active?'active':''}" data-onglet="${items[i]}" onclick="${fn}('${items[i]}')">${items[i+1]}</button>`;
+    const label = items[i]==='messages' && _nonLusProps > 0
+      ? items[i+1]+` <span style="background:var(--red);color:#fff;border-radius:99px;padding:1px 6px;font-size:10px;">${_nonLusProps}</span>`
+      : items[i+1];
+    h+=`<button class="nav-btn ${items[i]===active?'active':''}" data-onglet="${items[i]}" onclick="${fn}('${items[i]}')">${label}</button>`;
   }
   return h+'</div>';
 }
 
 // PAIEMENTS
 function chargerPaiements() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'],'paiements','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'paiements','navProprio');
   const payes=locataires.filter(l=>l.paye);
   const nonPayes=locataires.filter(l=>!l.paye);
   // Montant réel = loyer × nbMois selon fréquence
@@ -771,7 +825,7 @@ function telechargerQuittanceHTML() {
 
 // FINANCES
 function chargerFinances() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'],'finances','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'finances','navProprio');
   const enc=locataires.filter(l=>l.paye).reduce((s,l)=>s+l.loyer,0);
   const M=periodeF==='mensuel', k=M?1:12;
   const L=LOYER_TH*k, C=CHARGES*k, P=Math.round(LOYER_TH*.05)*k, N=L-C-P;
@@ -800,7 +854,7 @@ function chargerFinances() {
 
 // TRÉSORERIE
 async function chargerTresorerie() {
-  document.getElementById('proprio-nav').innerHTML = renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'],'tresorerie','navProprio');
+  document.getElementById('proprio-nav').innerHTML = renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'tresorerie','navProprio');
   document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
 
   try {
@@ -1030,9 +1084,93 @@ async function sauvegarderTransfert() {
   chargerTresorerie();
 }
 
+// MESSAGES PROPRIÉTAIRE
+async function chargerMessages() {
+  const NAV = renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'messages','navProprio');
+  document.getElementById('proprio-nav').innerHTML = NAV;
+  document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
+
+  try {
+    const r = await get('getMessages');
+    _messages = r.messages || [];
+    _nonLusProps = _messages.filter(m=>m.expediteur!=='Propriétaire'&&m.lu==='Non').length;
+
+    // Marquer comme lus les messages non lus destinés aux propriétaires
+    const nonLusIds = _messages
+      .filter(m=>m.expediteur!=='Propriétaire'&&m.lu==='Non')
+      .map(m=>m.id);
+    if (nonLusIds.length) await post({action:'marquerLu', ids:nonLusIds});
+
+    const types = ['Tous','Relance loyer','Avis de travaux','Renouvellement de bail','Communication générale','Réponse locataire'];
+    const typeBadgeColor = {
+      'Relance loyer':'pill-amber',
+      'Avis de travaux':'pill-blue',
+      'Renouvellement de bail':'pill-violet',
+      'Communication générale':'pill-green',
+      'Réponse locataire':'pill-blue',
+      'Réponse propriétaire':'pill-blue'
+    };
+
+    let h = '<div style="padding:14px;">';
+
+    // Bouton nouveau message
+    h += `<button class="btn-primary" style="margin-bottom:14px;" onclick="openModalNouveauMessage()">+ Nouveau message</button>`;
+
+    // Stats
+    h += `<div class="metrics" style="margin-bottom:14px;">
+      <div class="metric"><div class="metric-label">Total messages</div><div class="metric-val" style="color:var(--blue);">${_messages.length}</div><div class="metric-sub">6 derniers mois</div></div>
+      <div class="metric"><div class="metric-label">Réponses locataires</div><div class="metric-val ${_nonLusProps>0?'red':'green'}">${_nonLusProps>0?_nonLusProps:'0'}</div><div class="metric-sub">${_nonLusProps>0?'non lues':'tout lu'}</div></div>
+    </div>`;
+
+    if (!_messages.length) {
+      h += '<div class="card"><p style="font-size:13px;color:var(--gray-400);text-align:center;padding:20px;">Aucun message dans les 6 derniers mois.</p></div>';
+    } else {
+      // Grouper par locataire
+      const parLocataire = {};
+      _messages.forEach(m => {
+        const appt = m.appt || 'Général';
+        if (!parLocataire[appt]) parLocataire[appt] = [];
+        parLocataire[appt].push(m);
+      });
+
+      Object.keys(parLocataire).sort().forEach(appt => {
+        const msgs = parLocataire[appt];
+        const dest = msgs[0].destinataire || msgs[0].expediteur;
+        h += `<div class="stitle" style="margin-top:14px;">Appt ${appt} — ${dest}</div>`;
+        h += '<div class="card">';
+        msgs.forEach(m => {
+          const isReponse = m.expediteur !== 'Propriétaire';
+          const badge = typeBadgeColor[m.type] || 'pill-blue';
+          const nonLu = m.lu === 'Non' && isReponse;
+          h += `<div style="padding:10px 0;border-bottom:1px solid var(--gray-100);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+              <span class="pill ${badge}" style="font-size:9px;">${m.type}</span>
+              ${nonLu?'<span class="pill pill-red" style="font-size:9px;">Non lu</span>':''}
+              <span style="font-size:11px;color:var(--gray-400);">${m.date}</span>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:${isReponse?'var(--violet)':'var(--gray-900)'};">${isReponse?'← '+m.expediteur:'→ '+m.destinataire}</div>
+            <div style="font-size:13px;font-weight:500;margin-top:2px;">${m.objet}</div>
+            <div style="font-size:12px;color:var(--gray-600);margin-top:4px;white-space:pre-wrap;">${m.message.substring(0,150)}${m.message.length>150?'...':''}</div>
+            <div style="margin-top:8px;display:flex;gap:8px;">
+              <button class="btn-violet" style="font-size:11px;padding:5px 10px;" onclick="openModalRepondre('${m.appt}','${m.expediteur.replace(/'/g,'')}','${m.objet.replace(/'/g,'')}')">Répondre</button>
+            </div>
+          </div>`;
+        });
+        h += '</div>';
+      });
+    }
+
+    h += '<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
+    document.getElementById('proprio-content').innerHTML = h;
+
+  } catch(e) {
+    document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><p style="color:var(--red);">Erreur: '+e.message+'</p></div>';
+  }
+}
+
 // TRAVAUX
 function chargerTravaux() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'],'travaux','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'travaux','navProprio');
   let h=`<div style="padding:14px;"><button class="btn-primary" style="margin-bottom:14px;" onclick="openModal('modal-travail')">+ Nouveau travail</button>`;
   if(!travaux.length) { h+='<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:20px;">Aucun travail enregistré.</p>'; }
   else {
@@ -1062,7 +1200,7 @@ function travailCard(t) {
 
 // ARTISANS
 function chargerArtisans() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','travaux','Travaux','artisans','Artisans'],'artisans','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'artisans','navProprio');
   let h=`<div style="padding:14px;"><button class="btn-primary" style="margin-bottom:14px;" onclick="openModal('modal-artisan')">+ Ajouter un artisan</button>`;
   artisans.forEach(a=>{
     const i2=a.nom.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
@@ -1257,6 +1395,56 @@ function openModal(id) {
   document.getElementById(id).classList.add('open');
 }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModalNouveauMessage() {
+  // Remplir le select destinataires
+  const sel = document.getElementById('msg-dest');
+  sel.innerHTML = locataires.map(l =>
+    `<option value="${l.row}" data-appt="${l.appt}" data-email="${l.email}">${l.nom}${l.prenom?' '+l.prenom:''} - Appt ${l.appt}</option>`
+  ).join('');
+  document.getElementById('msg-objet').value = '';
+  document.getElementById('msg-texte').value = '';
+  openModal('modal-nouveau-message');
+}
+
+async function envoyerNouveauMessage() {
+  const sel = document.getElementById('msg-dest');
+  const opt = sel.options[sel.selectedIndex];
+  const appt  = opt.dataset.appt;
+  const email = opt.dataset.email;
+  const dest  = opt.text.split(' - ')[0];
+  const type  = document.getElementById('msg-type').value;
+  const objet = document.getElementById('msg-objet').value;
+  const texte = document.getElementById('msg-texte').value;
+  if (!objet || !texte) { alert('Veuillez remplir l'objet et le message.'); return; }
+  closeModal('modal-nouveau-message');
+  await post({ action:'envoyerMessage', type, expediteur:'Propriétaire',
+    destinataire:dest, appt, objet, message:texte, emailDest:email });
+  chargerMessages();
+}
+
+function openModalRepondre(appt, dest, objet) {
+  document.getElementById('rep-appt').value = appt;
+  document.getElementById('rep-dest').value = dest;
+  document.getElementById('modal-repondre-titre').textContent = 'Répondre à ' + dest;
+  document.getElementById('rep-texte').value = '';
+  openModal('modal-repondre');
+}
+
+async function envoyerReponse() {
+  const appt  = document.getElementById('rep-appt').value;
+  const dest  = document.getElementById('rep-dest').value;
+  const texte = document.getElementById('rep-texte').value;
+  if (!texte) { alert('Veuillez saisir un message.'); return; }
+  // Trouver email du destinataire
+  const loc = locataires.find(l => l.appt === appt);
+  const email = loc ? loc.email : '';
+  closeModal('modal-repondre');
+  await post({ action:'envoyerMessage', type:'Réponse propriétaire',
+    expediteur:'Propriétaire', destinataire:dest, appt,
+    objet:'Re: Message Immeuble 2i', message:texte, emailDest:email });
+  chargerMessages();
+}
+
 function seDeconnecter() {
   session=null; locataires=[]; travaux=[]; artisans=[];
   document.getElementById('screen-proprio').style.display='none';

@@ -103,6 +103,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div id="main-content"></div>
 </div>
 
+<!-- MODAL RÉPONSE LOCATAIRE -->
+<div class="modal-overlay" id="modal-reponse-loc">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Répondre à la Direction</div>
+    <div class="form-group"><label class="form-label">Votre message</label>
+      <textarea id="rep-loc-texte" placeholder="Votre réponse..." style="height:120px;resize:none;"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModalLoc('modal-reponse-loc')">Annuler</button>
+      <button class="btn-save" onclick="envoyerReponseLoc()">Envoyer</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL SIGNALEMENT -->
 <div class="modal-overlay" id="modal-signal">
   <div class="modal">
@@ -480,6 +495,9 @@ document.getElementById('modal-signal').addEventListener('click', function(e) {
 document.getElementById('input-mdp').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') seConnecter();
 });
+
+function openModalLoc(id) { document.getElementById(id).classList.add('open'); }
+function closeModalLoc(id) { document.getElementById(id).classList.remove('open'); }
 </script>
 </body>
 </html>
