@@ -1159,6 +1159,7 @@ async function chargerMessages() {
             <div style="font-size:12px;color:var(--gray-600);margin-top:4px;white-space:pre-wrap;">${m.message.substring(0,150)}${m.message.length>150?'...':''}</div>
             <div style="margin-top:8px;display:flex;gap:8px;">
               <button class="btn-violet" style="font-size:11px;padding:5px 10px;" onclick="openModalRepondre('${m.appt}','${m.expediteur.replace(/'/g,'')}','${m.objet.replace(/'/g,'')}')">Répondre</button>
+              ${m.type==='Relance loyer'?'<button class="btn-blue" style="font-size:11px;padding:5px 10px;" onclick="genererPDFRelance(this,\''+m.id+'\')">📄 PDF</button>':''}
             </div>
           </div>`;
         });
@@ -1401,6 +1402,116 @@ function openModal(id) {
   document.getElementById(id).classList.add('open');
 }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+async function genererPDFRelance(btn, msgId) {
+  const msg = _messages.find(m => m.id === msgId);
+  if (!msg) { alert('Message introuvable'); return; }
+  if (!window.jspdf) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  btn.textContent = '...'; btn.disabled = true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const W = 210, mg = 20;
+    let y = 0;
+
+    // En-tête Kair Group
+    doc.setFillColor(32, 72, 245);
+    doc.rect(0, 0, W, 30, 'F');
+    try { doc.addImage(LOGO_B64, 'PNG', mg, 4, 20, 11); } catch(e) {}
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.text('Kair Group', mg+22, 13);
+    doc.setFontSize(8); doc.setFont('helvetica','normal');
+    doc.text('Gestionnaire Immeuble 2i - Palmeraies, Cocody / Abidjan', mg+22, 19);
+    doc.text('immeuble2i.abidjan@gmail.com', mg+22, 24);
+
+    y = 45;
+
+    // Destinataire
+    doc.setTextColor(15,23,42);
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.text(msg.destinataire || '', mg, y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    doc.text('Immeuble 2i - Appartement ' + (msg.appt||''), mg, y+6);
+    doc.text('Palmeraies, Cocody / Abidjan', mg, y+11);
+
+    // Date à droite
+    doc.setFontSize(9);
+    doc.text('Abidjan, le ' + (msg.date||'').split(' ')[0], W-mg, y+11, {align:'right'});
+
+    y += 25;
+
+    // Ligne séparatrice
+    doc.setDrawColor(32,72,245); doc.setLineWidth(0.5);
+    doc.line(mg, y, W-mg, y);
+    y += 8;
+
+    // Objet
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.setTextColor(32,72,245);
+    doc.text('Objet : ' + (msg.objet||''), mg, y);
+    y += 10;
+
+    // Séparateur
+    doc.setDrawColor(226,232,240); doc.setLineWidth(0.3);
+    doc.line(mg, y, W-mg, y);
+    y += 8;
+
+    // Corps du message
+    doc.setTextColor(15,23,42);
+    doc.setFontSize(9.5); doc.setFont('helvetica','normal');
+    const lignes = doc.splitTextToSize(msg.message || '', W - 2*mg);
+    lignes.forEach(function(ligne) {
+      if (y > 260) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(ligne, mg, y);
+      y += 5.5;
+    });
+
+    y += 10;
+
+    // Ligne signature
+    doc.setDrawColor(226,232,240); doc.setLineWidth(0.3);
+    doc.line(mg, y, W-mg, y);
+    y += 8;
+
+    // Signature
+    doc.setFillColor(248,250,255);
+    doc.rect(mg, y, W-2*mg, 20, 'F');
+    doc.setTextColor(32,72,245); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text('Kair Group', mg+4, y+7);
+    doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105);
+    doc.text('Gestionnaire de l\'Immeuble 2i', mg+4, y+13);
+    doc.text('immeuble2i.abidjan@gmail.com', mg+4, y+18);
+
+    // Footer
+    doc.setFontSize(7.5); doc.setTextColor(188,179,245);
+    doc.line(mg, 282, W-mg, 282);
+    doc.text('Kair Group - Immeuble 2i - Palmeraies, Cocody / Abidjan', mg, 287);
+    doc.text('Ref. ' + (msg.id||'').substring(0,8), W-mg, 287, {align:'right'});
+
+    // Télécharger
+    const nomFichier = 'Relance_' + (msg.destinataire||'locataire').replace(/\s+/g,'_') + '_' + (msg.date||'').split(' ')[0].replace(/\//g,'-') + '.pdf';
+    doc.save(nomFichier);
+
+    btn.textContent = '✓ OK';
+    setTimeout(() => { btn.textContent = '📄 PDF'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    alert('Erreur PDF : ' + e.message);
+    btn.textContent = '📄 PDF'; btn.disabled = false;
+  }
+}
+
 function openModalNouveauMessage() {
   // Remplir le select destinataires
   const sel = document.getElementById('msg-dest');
