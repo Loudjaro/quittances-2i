@@ -470,12 +470,16 @@ async function ouvrirProprio() {
   document.getElementById('topbar-sub').textContent=session.nom;
   document.getElementById('sync-btn').style.display='block';
   chargerPaiements();
-  const [r1,r2,r3,r4]=await Promise.all([
-    get('getLocataires'), get('getTravaux'), get('getArtisans'), get('getMessages')
+  const [r1,r2,r3]=await Promise.all([
+    get('getLocataires'), get('getTravaux'), get('getArtisans')
   ]);
   locataires=r1.data||[]; travaux=r2.data||[]; artisans=r3.data||[];
-  _messages = r4.messages||[];
-  _nonLusProps = _messages.filter(m=>m.expediteur!=='Propriétaire'&&m.lu==='Non').length;
+  // Charger messages séparément sans bloquer si erreur
+  try {
+    const r4 = await get('getMessages');
+    _messages = r4.messages||[];
+    _nonLusProps = _messages.filter(m=>m.expediteur!=='Propriétaire'&&m.lu==='Non').length;
+  } catch(e) { _messages=[]; _nonLusProps=0; }
   chargerPaiements();
 }
 
