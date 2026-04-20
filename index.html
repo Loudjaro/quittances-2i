@@ -508,7 +508,8 @@ function renderNav(items, active, fn) {
     if (items[i]==='messages' && _nonLusProps > 0) {
       label += ' <span style="background:#DC2626;color:#fff;border-radius:99px;padding:1px 6px;font-size:10px;">' + _nonLusProps + '</span>';
     }
-    h+='<button class="nav-btn '+(items[i]===active?'active':'')+'" data-onglet="'+items[i]+'" onclick="'+fn+'(''+items[i]+'')">' + label + '</button>';
+    const btnClass = 'nav-btn ' + (items[i]===active ? 'active' : '');
+    h += '<button class="' + btnClass + '" data-onglet="' + items[i] + '" onclick="' + fn + '(\'' + items[i] + '\')">' + label + '</button>';
   }
   return h+'</div>';
 }
@@ -1416,7 +1417,7 @@ async function envoyerNouveauMessage() {
   const type  = document.getElementById('msg-type').value;
   const objet = document.getElementById('msg-objet').value;
   const texte = document.getElementById('msg-texte').value;
-  if (!objet || !texte) { alert('Veuillez remplir l'objet et le message.'); return; }
+  if (!objet || !texte) { alert("Veuillez remplir l'objet et le message."); return; }
   closeModal('modal-nouveau-message');
   await post({ action:'envoyerMessage', type, expediteur:'Propriétaire',
     destinataire:dest, appt, objet, message:texte, emailDest:email });
