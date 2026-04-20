@@ -504,10 +504,11 @@ function navProprio(onglet) {
 function renderNav(items, active, fn) {
   let h='<div class="nav" style="overflow-x:auto;">';
   for(let i=0;i<items.length;i+=2) {
-    const label = items[i]==='messages' && _nonLusProps > 0
-      ? items[i+1]+` <span style="background:var(--red);color:#fff;border-radius:99px;padding:1px 6px;font-size:10px;">${_nonLusProps}</span>`
-      : items[i+1];
-    h+=`<button class="nav-btn ${items[i]===active?'active':''}" data-onglet="${items[i]}" onclick="${fn}('${items[i]}')">${label}</button>`;
+    let label = items[i+1];
+    if (items[i]==='messages' && _nonLusProps > 0) {
+      label += ' <span style="background:#DC2626;color:#fff;border-radius:99px;padding:1px 6px;font-size:10px;">' + _nonLusProps + '</span>';
+    }
+    h+='<button class="nav-btn '+(items[i]===active?'active':'')+'" data-onglet="'+items[i]+'" onclick="'+fn+'(''+items[i]+'')">' + label + '</button>';
   }
   return h+'</div>';
 }
