@@ -1099,80 +1099,209 @@ async function chargerMessages() {
   try {
     const r = await get('getMessages');
     _messages = r.messages || [];
-    _nonLusProps = _messages.filter(m=>m.expediteur!=='Propriétaire'&&m.lu==='Non').length;
+    _nonLusProps = _messages.filter(m => m.expediteur !== '2i Immobilier' && m.expediteur !== 'Propriétaire' && m.lu === 'Non').length;
 
-    // Marquer comme lus les messages non lus destinés aux propriétaires
+    // Marquer comme lus les réponses des locataires
     const nonLusIds = _messages
-      .filter(m=>m.expediteur!=='Propriétaire'&&m.lu==='Non')
-      .map(m=>m.id);
-    if (nonLusIds.length) await post({action:'marquerLu', ids:nonLusIds});
+      .filter(m => m.expediteur !== '2i Immobilier' && m.expediteur !== 'Propriétaire' && m.lu === 'Non')
+      .map(m => m.id);
+    if (nonLusIds.length) await post({action:'marquerLu', ids: nonLusIds});
 
-    const types = ['Tous','Relance loyer','Avis de travaux','Renouvellement de bail','Communication générale','Réponse locataire'];
-    const typeBadgeColor = {
-      'Relance loyer':'pill-amber',
-      'Avis de travaux':'pill-blue',
-      'Renouvellement de bail':'pill-violet',
-      'Communication générale':'pill-green',
-      'Réponse locataire':'pill-blue',
-      'Réponse propriétaire':'pill-blue'
-    };
+    // Générer les 6 derniers mois pour le menu déroulant
+    const moisOptions = [];
+    const moisNoms = ['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
+    const today = new Date();
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const val = String(d.getFullYear()) + String(d.getMonth()+1).padStart(2,'0');
+      const lbl = moisNoms[d.getMonth()] + ' ' + d.getFullYear();
+      moisOptions.push({val, lbl});
+    }
+
+    // Réponses des locataires uniquement
+    const reponses = _messages.filter(m => m.expediteur !== '2i Immobilier' && m.expediteur !== 'Propriétaire');
 
     let h = '<div style="padding:14px;">';
 
-    // Bouton nouveau message
-    h += `<button class="btn-primary" style="margin-bottom:14px;" onclick="openModalNouveauMessage()">+ Nouveau message</button>`;
+    // SECTION RELANCES
+    h += '<div class="card" style="margin-bottom:14px;">';
+    h += '<div class="card-title">Lettres de relance</div>';
+    h += '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
+    h += '<select id="select-mois-relance" class="mode-select" style="font-size:13px;padding:9px 12px;">';
+    moisOptions.forEach(m => {
+      h += '<option value="' + m.val + '">' + m.lbl + '</option>';
+    });
+    h += '</select>';
+    h += '<button class="btn-primary" style="padding:9px 18px;" onclick="genererRelancesMois()">📄 Générer les relances</button>';
+    h += '</div>';
+    h += '<p style="font-size:12px;color:var(--gray-400);margin-top:8px;">Sélectionne le mois puis génère un PDF par locataire impayé.</p>';
+    h += '</div>';
 
-    // Stats
-    h += `<div class="metrics" style="margin-bottom:14px;">
-      <div class="metric"><div class="metric-label">Total messages</div><div class="metric-val" style="color:var(--blue);">${_messages.length}</div><div class="metric-sub">6 derniers mois</div></div>
-      <div class="metric"><div class="metric-label">Réponses locataires</div><div class="metric-val ${_nonLusProps>0?'red':'green'}">${_nonLusProps>0?_nonLusProps:'0'}</div><div class="metric-sub">${_nonLusProps>0?'non lues':'tout lu'}</div></div>
-    </div>`;
-
-    if (!_messages.length) {
-      h += '<div class="card"><p style="font-size:13px;color:var(--gray-400);text-align:center;padding:20px;">Aucun message dans les 6 derniers mois.</p></div>';
+    // SECTION RÉPONSES LOCATAIRES
+    h += '<div class="stitle">Réponses des locataires</div>';
+    if (!reponses.length) {
+      h += '<div class="card"><p style="font-size:13px;color:var(--gray-400);text-align:center;padding:16px;">Aucune réponse reçue.</p></div>';
     } else {
-      // Grouper par locataire
-      const parLocataire = {};
-      _messages.forEach(m => {
-        const appt = m.appt || 'Général';
-        if (!parLocataire[appt]) parLocataire[appt] = [];
-        parLocataire[appt].push(m);
-      });
-
-      Object.keys(parLocataire).sort().forEach(appt => {
-        const msgs = parLocataire[appt];
-        const dest = msgs[0].destinataire || msgs[0].expediteur;
-        h += `<div class="stitle" style="margin-top:14px;">Appt ${appt} — ${dest}</div>`;
-        h += '<div class="card">';
-        msgs.forEach(m => {
-          const isReponse = m.expediteur !== 'Propriétaire';
-          const badge = typeBadgeColor[m.type] || 'pill-blue';
-          const nonLu = m.lu === 'Non' && isReponse;
-          h += `<div style="padding:10px 0;border-bottom:1px solid var(--gray-100);">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
-              <span class="pill ${badge}" style="font-size:9px;">${m.type}</span>
-              ${nonLu?'<span class="pill pill-red" style="font-size:9px;">Non lu</span>':''}
-              <span style="font-size:11px;color:var(--gray-400);">${m.date}</span>
-            </div>
-            <div style="font-size:13px;font-weight:600;color:${isReponse?'var(--violet)':'var(--gray-900)'};">${isReponse?'← '+m.expediteur:'→ '+m.destinataire}</div>
-            <div style="font-size:13px;font-weight:500;margin-top:2px;">${m.objet}</div>
-            <div style="font-size:12px;color:var(--gray-600);margin-top:4px;white-space:pre-wrap;">${m.message.substring(0,150)}${m.message.length>150?'...':''}</div>
-            <div style="margin-top:8px;display:flex;gap:8px;">
-              <button class="btn-violet" style="font-size:11px;padding:5px 10px;" onclick="openModalRepondre('${m.appt}','${m.expediteur.replace(/'/g,'')}','${m.objet.replace(/'/g,'')}')">Répondre</button>
-              ${m.type==='Relance loyer'?'<button class="btn-blue" style="font-size:11px;padding:5px 10px;" onclick="genererPDFRelance(this,\''+m.id+'\')">📄 PDF</button>':''}
-            </div>
-          </div>`;
-        });
+      h += '<div class="card">';
+      reponses.forEach(m => {
+        const nonLu = m.lu === 'Non';
+        h += '<div style="padding:10px 0;border-bottom:1px solid var(--gray-100);">';
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
+        h += '<span style="font-size:13px;font-weight:600;color:var(--violet);">← ' + m.expediteur + ' (Appt ' + m.appt + ')</span>';
+        h += (nonLu ? '<span class="pill pill-red">Non lu</span>' : '<span class="pill pill-green">Lu</span>');
         h += '</div>';
+        h += '<div style="font-size:11px;color:var(--gray-400);margin-bottom:4px;">' + m.date + '</div>';
+        h += '<div style="font-size:13px;font-weight:500;">' + m.objet + '</div>';
+        h += '<div style="font-size:12px;color:var(--gray-600);margin-top:4px;">' + m.message.substring(0,200) + (m.message.length>200?'...':'') + '</div>';
+        h += '<div style="margin-top:8px;">';
+        h += '<button class="btn-violet" style="font-size:11px;padding:5px 10px;" onclick="openModalRepondre(\'' + m.appt + '\',\'' + m.expediteur.replace(/'/g,'') + '\',\'' + m.objet.replace(/'/g,'') + '\')">↩ Répondre</button>';
+        h += '</div></div>';
       });
+      h += '</div>';
     }
 
     h += '<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
     document.getElementById('proprio-content').innerHTML = h;
 
   } catch(e) {
-    document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><p style="color:var(--red);">Erreur: '+e.message+'</p></div>';
+    document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><p style="color:var(--red);">Erreur: ' + e.message + '</p></div>';
   }
+}
+
+async function genererRelancesMois() {
+  const moisSlug = document.getElementById('select-mois-relance').value;
+  const year = parseInt(moisSlug.substring(0,4));
+  const month = parseInt(moisSlug.substring(4,6)) - 1;
+  const moisNoms = ['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
+  const moisLabel = moisNoms[month] + ' ' + year;
+
+  // Locataires impayés
+  const impayés = locataires.filter(l => !l.paye);
+  if (!impayés.length) { alert('Tous les locataires ont payé pour ce mois.'); return; }
+
+  if (!window.jspdf) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  // Générer un PDF par locataire impayé
+  for (const l of impayés) {
+    const nomComplet = l.nom + (l.prenom ? ' ' + l.prenom : '');
+    const loyer = l.loyer;
+    const appt = l.appt;
+    const loyerFmt = Math.round(loyer).toLocaleString('fr-FR') + ' Fr CFA';
+    const today = new Date().toLocaleDateString('fr-FR');
+
+    const corps = 'Madame, Monsieur,\n\n' +
+      'Nous constatons a ce jour que le reglement de votre loyer du mois de ' + moisLabel +
+      ' n\'a pas ete recu par nos services.\n\n' +
+      'Il s\'eleve a la somme de ' + loyerFmt + ' et etait du le 1er ' + moisLabel + '.\n\n' +
+      'Si ce reglement a deja ete effectue de votre cote, nous vous prions de ne pas tenir ' +
+      'compte de ce courrier et de nous faire parvenir votre justificatif afin que nous ' +
+      'puissions mettre a jour votre dossier.\n\n' +
+      'Dans le cas contraire, nous vous demandons de bien vouloir proceder au reglement ' +
+      'dans les meilleurs delais, et au plus tard dans un delai de huit (8) jours a compter ' +
+      'de la reception de ce courrier.\n\n' +
+      'Pour tout reglement ou question : immeuble2i.abidjan@gmail.com\n\n' +
+      'Sans retour de votre part dans ce delai, nous nous verrons contraints d\'engager ' +
+      'les demarches prevues par le bail et la legislation en vigueur.\n\n' +
+      'Nous vous adressons nos cordiales salutations.\n\n' +
+      'La Direction\n2i Immobilier';
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const W = 210, mg = 20;
+    let y = 0;
+
+    // EN-TETE
+    doc.setFillColor(32,72,245); doc.rect(0,0,W,32,'F');
+    try { doc.addImage(LOGO_B64,'PNG',mg,4,22,12); } catch(e){}
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(15); doc.setFont('helvetica','bold');
+    doc.text('2i Immobilier', mg+25, 13);
+    doc.setFontSize(8); doc.setFont('helvetica','normal');
+    doc.text("Palmeraies, Cocody / Abidjan, Cote d'Ivoire", mg+25, 19);
+    doc.text('immeuble2i.abidjan@gmail.com', mg+25, 25);
+    y = 44;
+
+    // EXPEDITEUR
+    doc.setFillColor(248,250,255); doc.rect(mg,y,78,28,'F');
+    doc.setDrawColor(32,72,245); doc.setLineWidth(0.8);
+    doc.line(mg,y,mg,y+28);
+    doc.setTextColor(148,163,184); doc.setFontSize(7); doc.setFont('helvetica','bold');
+    doc.text('EXPEDITEUR', mg+3, y+6);
+    doc.setTextColor(15,23,42); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text('2i Immobilier', mg+3, y+13);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(71,85,105);
+    doc.text('Mme Diaby Djeneba & M. Musandji N. Roger', mg+3, y+19);
+    doc.text('Palmeraies, Cocody / Abidjan', mg+3, y+24);
+
+    // DESTINATAIRE
+    doc.setFillColor(248,250,255); doc.rect(W/2+4,y,78,28,'F');
+    doc.setDrawColor(130,32,245); doc.setLineWidth(0.8);
+    doc.line(W/2+4,y,W/2+4,y+28);
+    doc.setTextColor(148,163,184); doc.setFontSize(7); doc.setFont('helvetica','bold');
+    doc.text('DESTINATAIRE', W/2+7, y+6);
+    doc.setTextColor(15,23,42); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text(nomComplet, W/2+7, y+13);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(71,85,105);
+    doc.text('Immeuble 2i - Appartement ' + String(appt), W/2+7, y+19);
+    doc.text('Palmeraies, Cocody / Abidjan', W/2+7, y+24);
+
+    y += 36;
+
+    // DATE
+    doc.setFontSize(9); doc.setTextColor(71,85,105); doc.setFont('helvetica','normal');
+    doc.text('Abidjan, le ' + today, W-mg, y, {align:'right'});
+    y += 8;
+
+    // LIGNE + OBJET
+    doc.setDrawColor(32,72,245); doc.setLineWidth(0.4);
+    doc.line(mg,y,W-mg,y); y += 7;
+    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(32,72,245);
+    const objet = 'Rappel - Loyer du mois de ' + moisLabel + ' impaye';
+    doc.text('Objet : ' + objet, mg, y); y += 10;
+    doc.setDrawColor(226,232,240); doc.setLineWidth(0.2);
+    doc.line(mg,y,W-mg,y); y += 8;
+
+    // CORPS
+    doc.setTextColor(15,23,42); doc.setFontSize(9.5); doc.setFont('helvetica','normal');
+    const lines = doc.splitTextToSize(corps, W-2*mg);
+    lines.forEach(line => {
+      if (y > 258) { doc.addPage(); y = 20; }
+      doc.text(line, mg, y); y += 5.5;
+    });
+
+    y += 10;
+    if (y > 240) { doc.addPage(); y = 20; }
+
+    // SIGNATURE
+    doc.setDrawColor(226,232,240); doc.setLineWidth(0.3);
+    doc.line(mg,y,W-mg,y); y += 8;
+    doc.setFillColor(248,250,255); doc.rect(mg,y,W-2*mg,20,'F');
+    doc.setDrawColor(32,72,245); doc.setLineWidth(0.8);
+    doc.line(mg,y,mg,y+20);
+    doc.setTextColor(32,72,245); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text('La Direction', mg+4, y+7);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(71,85,105);
+    doc.text('2i Immobilier', mg+4, y+13);
+    doc.text('immeuble2i.abidjan@gmail.com', mg+4, y+18);
+
+    // FOOTER
+    doc.setFontSize(7); doc.setTextColor(188,179,245);
+    doc.line(mg,284,W-mg,284);
+    doc.text("2i Immobilier - Palmeraies, Cocody / Abidjan", mg, 289);
+    doc.text(moisLabel, W-mg, 289, {align:'right'});
+
+    doc.save('Relance_' + nomComplet.replace(/\s+/g,'_') + '_' + moisLabel.replace(' ','_') + '.pdf');
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  alert(impayés.length + ' lettre(s) generee(s) pour ' + moisLabel + '.');
 }
 
 // TRAVAUX
