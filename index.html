@@ -1749,17 +1749,43 @@ async function validerMultiMois() {
   if (!moisSelec.length) { alert('Sélectionne au moins un mois.'); return; }
 
   const total = loyer * moisSelec.length;
-  if (!confirm('Valider ' + moisSelec.length + ' mois pour ' + fmt(total) + ' Fr CFA ?')) return;
+  const moisLabels = moisSelec.map(m => m.lbl).join(', ');
+  if (!confirm('Valider paiement de ' + fmt(total) + ' Fr CFA\n(' + moisLabels + ') ?')) return;
 
   closeModal('modal-multimois');
 
-  // Valider le paiement du mois courant dans Feuille 1
-  await post({action:'setPaye', row:parseInt(row), paye:true, modePaie:mode,
-    nbMois: moisSelec.length, moisCouverts: moisSelec.map(m=>m.slug).join(',')});
+  try {
+    // 1. Marquer comme payé dans Feuille 1 avec le montant total et les mois
+    await post({
+      action: 'setPaye',
+      row: parseInt(row),
+      paye: true,
+      modePaie: mode,
+      nbMois: moisSelec.length,
+      moisCouverts: moisSelec.map(m => m.slug).join(','),
+      montantTotal: total
+    });
 
-  const r = await get('getLocataires');
-  locataires = r.data||[];
-  chargerPaiements();
+    // 2. Recharger et afficher
+    const r = await get('getLocataires');
+    locataires = r.data || [];
+    chargerPaiements();
+
+    // Feedback
+    setTimeout(() => {
+      const el = document.getElementById('proprio-content');
+      if (el) {
+        const banner = document.createElement('div');
+        banner.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:12px 24px;border-radius:12px;font-weight:600;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.2);';
+        banner.textContent = '✓ ' + moisSelec.length + ' mois enregistrés — ' + fmt(total) + ' Fr CFA';
+        document.body.appendChild(banner);
+        setTimeout(() => banner.remove(), 3000);
+      }
+    }, 300);
+
+  } catch(e) {
+    alert('Erreur: ' + e.message);
+  }
 }
 
 // ── ARCHIVES ─────────────────────────────────────────────────
