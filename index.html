@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Immeuble 2i">
 <title>Immeuble 2i</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root {
   --blue:#2048F5; --blue-light:#E8EDFF; --blue-dark:#1535C4;
@@ -280,6 +281,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- MODAL PAIEMENT MULTI-MOIS -->
+<div class="modal-overlay" id="modal-multimois">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="multimois-titre">Paiement plusieurs mois</div>
+    <input type="hidden" id="mm-row">
+    <input type="hidden" id="mm-loyer">
+    <div class="form-group">
+      <label class="form-label">Mois couverts</label>
+      <div id="mm-mois-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mode de paiement</label>
+      <select id="mm-mode">
+        <option value="Mobile Money">Mobile Money</option>
+        <option value="Espèces">Espèces</option>
+        <option value="Dépôt bancaire">Dépôt bancaire</option>
+        <option value="Virement bancaire">Virement bancaire</option>
+      </select>
+    </div>
+    <div class="card" style="background:var(--blue-light);margin-bottom:0;">
+      <div class="row"><span class="row-label">Mois sélectionnés</span><span id="mm-nb-mois" class="row-val">0</span></div>
+      <div class="row"><span class="row-label">Montant total</span><span id="mm-total" class="row-val" style="color:var(--blue);">0 Fr</span></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-multimois')">Annuler</button>
+      <button class="btn-save" onclick="validerMultiMois()">Valider</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL NOUVEAU MESSAGE -->
 <div class="modal-overlay" id="modal-nouveau-message">
   <div class="modal">
@@ -379,10 +411,8 @@ const LOGO_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAABRCAYAAAAw
 const WEBAPP = 'https://script.google.com/macros/s/AKfycbwUhDRrFuDM2yf-qMv1pk6FkGm38k2TKbofRumUsgSbI_nsJr0L3d0ayGhhO7Z_eHnKxQ/exec';
 const CHARGES = 370000, LOYER_TH = 4560000;
 const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-const PROPRIO = {
-  'proprio_diaby':    {mdp:'Diaby2i2026',    nom:'Madame Diaby Djeneba'},
-  'proprio_musandji': {mdp:'Musandji2i2026', nom:'Monsieur Musandji Nzanza Roger'}
-};
+// Authentification propriétaires via WebApp (mots de passe non exposés)
+const PROPRIO = {}; // Vide — auth gérée côté serveur
 
 let session=null, locataires=[], travaux=[], artisans=[], travailRow=null, periodeF='mensuel', _nonLusProps=0, _messages=[];
 
@@ -426,17 +456,26 @@ async function seConnecter() {
   const mdp = document.getElementById('input-mdp').value.trim();
   if (!id||!mdp) { errLogin('Veuillez renseigner vos identifiants.'); return; }
 
-  if (PROPRIO[id] && PROPRIO[id].mdp === mdp) {
-    if (document.getElementById('remember-me').checked) {
-      localStorage.setItem('2i_login_id', id);
-      localStorage.setItem('2i_login_mdp_' + id, mdp);
-    } else {
-      localStorage.removeItem('2i_login_id');
-      localStorage.removeItem('2i_login_mdp_' + id);
-    }
-    session = {type:'proprio', id, nom:PROPRIO[id].nom};
-    ouvrirProprio();
-    return;
+  // Auth propriétaire via WebApp — mots de passe jamais exposés côté client
+  const isProprio = id.startsWith('proprio_');
+  if (isProprio) {
+    try {
+      const rp = await fetch(WEBAPP+'?action=authProprio&id='+encodeURIComponent(id)+'&mdp='+encodeURIComponent(mdp));
+      const dp = await rp.json();
+      if (!dp.success) { errLogin('Identifiant ou mot de passe incorrect.'); return; }
+      // Injecter dynamiquement le nom depuis le serveur
+      PROPRIO[id] = { nom: dp.nom };
+      if (document.getElementById('remember-me').checked) {
+        localStorage.setItem('2i_login_id', id);
+        localStorage.setItem('2i_login_mdp_' + id, mdp);
+      } else {
+        localStorage.removeItem('2i_login_id');
+        localStorage.removeItem('2i_login_mdp_' + id);
+      }
+      session = {type:'proprio', id, nom:PROPRIO[id].nom};
+      ouvrirProprio();
+      return;
+    } catch(e) { errLogin('Erreur de connexion.'); return; }
   }
   if (document.getElementById('remember-me').checked) {
     localStorage.setItem('2i_login_id', id);
@@ -496,9 +535,10 @@ async function actualiser() {
 }
 
 function navProprio(onglet) {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'], onglet, 'navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'], onglet, 'navProprio');
   if(onglet==='paiements') chargerPaiements();
   else if(onglet==='finances') chargerFinances();
+  else if(onglet==='archives') chargerArchives();
   else if(onglet==='tresorerie') chargerTresorerie();
   else if(onglet==='messages') chargerMessages();
   else if(onglet==='travaux') chargerTravaux();
@@ -520,7 +560,7 @@ function renderNav(items, active, fn) {
 
 // PAIEMENTS
 function chargerPaiements() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'paiements','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'paiements','navProprio');
   const payes=locataires.filter(l=>l.paye);
   const nonPayes=locataires.filter(l=>!l.paye);
   // Montant réel = loyer × nbMois selon fréquence
@@ -590,6 +630,7 @@ function chargerPaiements() {
             <option value="Virement bancaire">Virement bancaire</option>
           </select>
           <button class="btn-blue" onclick="validerPaiement(${l.row},'${l.nom} ${l.prenom}')">✓ Valider</button>
+          <button class="btn-violet" onclick="openModalMultiMois(${l.row},'${l.nom}','${l.prenom}',${l.loyer})">+ Mois</button>
         </div>
       </div>`;
     });
@@ -831,7 +872,7 @@ function telechargerQuittanceHTML() {
 
 // FINANCES
 function chargerFinances() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'finances','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'finances','navProprio');
   const enc=locataires.filter(l=>l.paye).reduce((s,l)=>s+l.loyer,0);
   const M=periodeF==='mensuel', k=M?1:12;
   const L=LOYER_TH*k, C=CHARGES*k, P=Math.round(LOYER_TH*.05)*k, N=L-C-P;
@@ -860,7 +901,7 @@ function chargerFinances() {
 
 // TRÉSORERIE
 async function chargerTresorerie() {
-  document.getElementById('proprio-nav').innerHTML = renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'tresorerie','navProprio');
+  document.getElementById('proprio-nav').innerHTML = renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'tresorerie','navProprio');
   document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
 
   try {
@@ -1092,7 +1133,7 @@ async function sauvegarderTransfert() {
 
 // MESSAGES PROPRIÉTAIRE
 async function chargerMessages() {
-  const NAV = renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'messages','navProprio');
+  const NAV = renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'messages','navProprio');
   document.getElementById('proprio-nav').innerHTML = NAV;
   document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
 
@@ -1306,7 +1347,7 @@ async function genererRelancesMois() {
 
 // TRAVAUX
 function chargerTravaux() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'travaux','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'travaux','navProprio');
   let h=`<div style="padding:14px;"><button class="btn-primary" style="margin-bottom:14px;" onclick="openModal('modal-travail')">+ Nouveau travail</button>`;
   if(!travaux.length) { h+='<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:20px;">Aucun travail enregistré.</p>'; }
   else {
@@ -1336,7 +1377,7 @@ function travailCard(t) {
 
 // ARTISANS
 function chargerArtisans() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'artisans','navProprio');
+  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'artisans','navProprio');
   let h=`<div style="padding:14px;"><button class="btn-primary" style="margin-bottom:14px;" onclick="openModal('modal-artisan')">+ Ajouter un artisan</button>`;
   artisans.forEach(a=>{
     const i2=a.nom.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
@@ -1656,6 +1697,168 @@ async function genererPDFRelance(btn, msgId) {
     alert('Erreur : ' + e.message);
     btn.textContent = '📄 PDF'; btn.disabled = false;
   }
+}
+
+// ── PAIEMENT MULTI-MOIS ──────────────────────────────────────
+function openModalMultiMois(row, nom, prenom, loyer) {
+  document.getElementById('mm-row').value = row;
+  document.getElementById('mm-loyer').value = loyer;
+  document.getElementById('multimois-titre').textContent = 'Paiement multi-mois — ' + nom + (prenom?' '+prenom:'');
+
+  // Générer les 6 derniers mois comme options
+  const MOIS_NOMS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const today = new Date();
+  const list = document.getElementById('mm-mois-list');
+  list.innerHTML = '';
+
+  for (let i = -1; i <= 4; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth() - 1 + i, 1);
+    const slug = String(d.getFullYear()) + String(d.getMonth()+1).padStart(2,'0');
+    const lbl = MOIS_NOMS[d.getMonth()] + ' ' + d.getFullYear();
+    const btn = document.createElement('button');
+    btn.className = 'pill pill-blue';
+    btn.style.cssText = 'cursor:pointer;padding:8px 14px;font-size:12px;border:2px solid var(--blue);background:var(--white);';
+    btn.dataset.slug = slug;
+    btn.dataset.lbl = lbl;
+    btn.textContent = lbl;
+    // Mois courant sélectionné par défaut
+    if (i === 0) { btn.style.background = 'var(--blue)'; btn.style.color = '#fff'; btn.dataset.selected = '1'; }
+    btn.onclick = function() {
+      const sel = this.dataset.selected === '1';
+      this.dataset.selected = sel ? '0' : '1';
+      this.style.background = sel ? 'var(--white)' : 'var(--blue)';
+      this.style.color = sel ? 'var(--blue)' : '#fff';
+      updateMultiMoisTotal();
+    };
+    list.appendChild(btn);
+  }
+  updateMultiMoisTotal();
+  openModal('modal-multimois');
+}
+
+function updateMultiMoisTotal() {
+  const loyer = parseInt(document.getElementById('mm-loyer').value)||0;
+  const btns = document.querySelectorAll('#mm-mois-list button');
+  let count = 0;
+  btns.forEach(b => { if (b.dataset.selected === '1') count++; });
+  document.getElementById('mm-nb-mois').textContent = count + ' mois';
+  document.getElementById('mm-total').textContent = fmt(loyer * count) + ' Fr CFA';
+}
+
+async function validerMultiMois() {
+  const row   = document.getElementById('mm-row').value;
+  const loyer = parseInt(document.getElementById('mm-loyer').value)||0;
+  const mode  = document.getElementById('mm-mode').value;
+  const btns  = document.querySelectorAll('#mm-mois-list button');
+  const moisSelec = [];
+  btns.forEach(b => { if (b.dataset.selected === '1') moisSelec.push({slug:b.dataset.slug, lbl:b.dataset.lbl}); });
+
+  if (!moisSelec.length) { alert('Sélectionne au moins un mois.'); return; }
+
+  const total = loyer * moisSelec.length;
+  if (!confirm('Valider ' + moisSelec.length + ' mois pour ' + fmt(total) + ' Fr CFA ?')) return;
+
+  closeModal('modal-multimois');
+
+  // Valider le paiement du mois courant dans Feuille 1
+  await post({action:'setPaye', row:parseInt(row), paye:true, modePaie:mode,
+    nbMois: moisSelec.length, moisCouverts: moisSelec.map(m=>m.slug).join(',')});
+
+  const r = await get('getLocataires');
+  locataires = r.data||[];
+  chargerPaiements();
+}
+
+// ── ARCHIVES ─────────────────────────────────────────────────
+async function chargerArchives() {
+  const NAV = renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'archives','navProprio');
+  document.getElementById('proprio-nav').innerHTML = NAV;
+  document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
+
+  try {
+    const r = await get('getHistoriqueComplet');
+    const data = r.data || {};
+    const moisDispo = r.mois || [];
+
+    const MOIS_NOMS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+    let h = '<div style="padding:14px;">';
+
+    // Sélecteur de mois
+    h += '<div class="card" style="margin-bottom:14px;">';
+    h += '<div class="card-title">Historique des paiements</div>';
+    h += '<select id="sel-mois-archive" class="mode-select" style="font-size:13px;padding:9px 12px;width:100%;" onchange="afficherArchiveMois(this.value)">';
+
+    const today = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const slug = String(d.getFullYear()) + String(d.getMonth()+1).padStart(2,'0');
+      const lbl = MOIS_NOMS[d.getMonth()] + ' ' + d.getFullYear();
+      h += '<option value="' + slug + '">' + lbl + '</option>';
+    }
+    h += '</select></div>';
+
+    // Tableau de régularité
+    h += '<div class="stitle">Régularité des locataires — 6 derniers mois</div>';
+    h += '<div class="card" style="overflow-x:auto;">';
+
+    const mois6 = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      mois6.push({
+        slug: String(d.getFullYear()) + String(d.getMonth()+1).padStart(2,'0'),
+        lbl: MOIS_NOMS[d.getMonth()].substring(0,3)
+      });
+    }
+
+    // En-tête tableau
+    h += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    h += '<thead><tr style="background:var(--gray-100);">';
+    h += '<th style="padding:8px;text-align:left;">Locataire</th>';
+    mois6.forEach(m => {
+      h += '<th style="padding:8px;text-align:center;">' + m.lbl + '</th>';
+    });
+    h += '<th style="padding:8px;text-align:center;">Score</th>';
+    h += '</tr></thead><tbody>';
+
+    // Données par locataire depuis Recettes
+    const recettes = r.recettes || [];
+    locataires.forEach((l, idx) => {
+      const nomComplet = l.nom + (l.prenom?' '+l.prenom:'');
+      h += '<tr style="border-bottom:1px solid var(--gray-100);">';
+      h += '<td style="padding:8px;font-size:12px;font-weight:500;">' + nomComplet + '<br><span style="color:var(--gray-400);font-size:10px;">Appt ' + l.appt + '</span></td>';
+
+      let score = 0;
+      mois6.forEach(m => {
+        // Chercher si paiement ce mois
+        const paye = recettes.some(r2 =>
+          r2.nom && r2.nom.toUpperCase().includes(l.nom.toUpperCase()) &&
+          r2.moisSlug === m.slug
+        );
+        if (paye) score++;
+        h += '<td style="padding:8px;text-align:center;">';
+        h += paye ? '<span style="color:var(--green);font-size:16px;">✓</span>' : '<span style="color:var(--red);font-size:16px;">✗</span>';
+        h += '</td>';
+      });
+
+      const pct = Math.round(score/6*100);
+      const couleur = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
+      h += '<td style="padding:8px;text-align:center;font-weight:700;color:' + couleur + ';">' + pct + '%</td>';
+      h += '</tr>';
+    });
+
+    h += '</tbody></table></div>';
+    h += '<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
+    document.getElementById('proprio-content').innerHTML = h;
+
+  } catch(e) {
+    document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><p style="color:var(--red);">Erreur: '+e.message+'</p></div>';
+  }
+}
+
+function afficherArchiveMois(slug) {
+  // TODO: filtrer les paiements par mois sélectionné
+  console.log('Mois sélectionné:', slug);
 }
 
 function openModalNouveauMessage() {
