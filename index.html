@@ -411,8 +411,10 @@ const LOGO_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAABRCAYAAAAw
 const WEBAPP = 'https://script.google.com/macros/s/AKfycbwUhDRrFuDM2yf-qMv1pk6FkGm38k2TKbofRumUsgSbI_nsJr0L3d0ayGhhO7Z_eHnKxQ/exec';
 const CHARGES = 370000, LOYER_TH = 4560000;
 const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-// Authentification propriétaires via WebApp (mots de passe non exposés)
-const PROPRIO = {}; // Vide — auth gérée côté serveur
+const PROPRIO = {
+  'proprio_diaby':    {mdp:'Diaby2i2026',    nom:'Madame Diaby Djeneba'},
+  'proprio_musandji': {mdp:'Musandji2i2026', nom:'Monsieur Musandji Nzanza Roger'}
+};
 
 let session=null, locataires=[], travaux=[], artisans=[], travailRow=null, periodeF='mensuel', _nonLusProps=0, _messages=[];
 
@@ -456,26 +458,17 @@ async function seConnecter() {
   const mdp = document.getElementById('input-mdp').value.trim();
   if (!id||!mdp) { errLogin('Veuillez renseigner vos identifiants.'); return; }
 
-  // Auth propriétaire via WebApp — mots de passe jamais exposés côté client
-  const isProprio = id.startsWith('proprio_');
-  if (isProprio) {
-    try {
-      const rp = await fetch(WEBAPP+'?action=authProprio&id='+encodeURIComponent(id)+'&mdp='+encodeURIComponent(mdp));
-      const dp = await rp.json();
-      if (!dp.success) { errLogin('Identifiant ou mot de passe incorrect.'); return; }
-      // Injecter dynamiquement le nom depuis le serveur
-      PROPRIO[id] = { nom: dp.nom };
-      if (document.getElementById('remember-me').checked) {
-        localStorage.setItem('2i_login_id', id);
-        localStorage.setItem('2i_login_mdp_' + id, mdp);
-      } else {
-        localStorage.removeItem('2i_login_id');
-        localStorage.removeItem('2i_login_mdp_' + id);
-      }
-      session = {type:'proprio', id, nom:PROPRIO[id].nom};
-      ouvrirProprio();
-      return;
-    } catch(e) { errLogin('Erreur de connexion.'); return; }
+  if (PROPRIO[id] && PROPRIO[id].mdp === mdp) {
+    if (document.getElementById('remember-me').checked) {
+      localStorage.setItem('2i_login_id', id);
+      localStorage.setItem('2i_login_mdp_' + id, mdp);
+    } else {
+      localStorage.removeItem('2i_login_id');
+      localStorage.removeItem('2i_login_mdp_' + id);
+    }
+    session = {type:'proprio', id, nom:PROPRIO[id].nom};
+    ouvrirProprio();
+    return;
   }
   if (document.getElementById('remember-me').checked) {
     localStorage.setItem('2i_login_id', id);
