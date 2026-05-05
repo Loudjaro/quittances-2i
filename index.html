@@ -434,8 +434,35 @@ const fmtDate = d => {
 };
 const ini = s => (s||'').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
 const moisLbl = slug => { const y=slug.slice(0,4),m=parseInt(slug.slice(4,6))-1; return MOIS[m]+' '+y; };
-const get = async a => { const r=await fetch(WEBAPP+'?action='+a); return r.json(); };
-const post = async b => { const r=await fetch(WEBAPP,{method:'POST',body:JSON.stringify(b)}); return r.json(); };
+const get = async (a, retries=2) => {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const r = await fetch(WEBAPP + '?action=' + a, {
+        method: 'GET',
+        redirect: 'follow'
+      });
+      return r.json();
+    } catch(e) {
+      if (i === retries) throw e;
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }
+};
+const post = async (b, retries=2) => {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const r = await fetch(WEBAPP, {
+        method: 'POST',
+        body: JSON.stringify(b),
+        redirect: 'follow'
+      });
+      return r.json();
+    } catch(e) {
+      if (i === retries) throw e;
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }
+};
 
 // ── MÉMOIRE IDENTIFIANT ───────────────────────────────────────
 window.addEventListener('load', () => {
