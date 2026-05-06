@@ -717,23 +717,44 @@ async function genererQuittanceProprio(btn, idx) {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
     const today = new Date();
-    const m = today.getMonth();
-    const y = today.getFullYear();
     const freq = l.frequence || 'Mensuel';
-    const nbMois = freq === 'Trimestriel' ? 3 : freq === 'Semestriel' ? 6 : 1;
-    const montantTotal = l.loyer * nbMois;
     const nomComplet = l.nom + (l.prenom ? ' ' + l.prenom : '');
+
+    // Mois couverts : depuis multi-mois si dispo, sinon depuis fréquence
+    let moisList = []; // liste de {m: 0-11, y: 2026}
+    if (l.moisCouverts && l.moisCouverts.length > 0) {
+      // Paiement multi-mois manuel
+      l.moisCouverts.forEach(slug => {
+        const yy = parseInt(slug.substring(0,4));
+        const mm = parseInt(slug.substring(4,6)) - 1;
+        moisList.push({m: mm, y: yy});
+      });
+    } else {
+      // Paiement normal : fréquence
+      const nbMoisFreq = freq === 'Trimestriel' ? 3 : freq === 'Semestriel' ? 6 : 1;
+      const mBase = today.getMonth();
+      const yBase = today.getFullYear();
+      for (let i = 0; i < nbMoisFreq; i++) {
+        const mIdx = (mBase + i) % 12;
+        const yIdx = yBase + Math.floor((mBase + i) / 12);
+        moisList.push({m: mIdx, y: yIdx});
+      }
+    }
+    const nbMois = moisList.length;
+    const montantTotal = l.montantPaye || (l.loyer * nbMois);
+    const m = moisList[0].m;
+    const y = moisList[0].y;
     const appt = l.appt || '';
     const zone = (l.zone || '').replace('Cote ','').replace('Côté ','');
     const modePaie = l.modePaie || 'Depot bancaire';
     const datePaie = fmtDate(l.datePaie) || today.toLocaleDateString('fr-FR');
-    const MOIS = ['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
-    const typeLabel = freq === 'Trimestriel' ? 'Trimestrielle' : freq === 'Semestriel' ? 'Semestrielle' : '';
+    const typeLabel = nbMois === 1 ? '' : nbMois === 3 && freq === 'Trimestriel' ? 'Trimestrielle' : nbMois === 6 && freq === 'Semestriel' ? 'Semestrielle' : nbMois + ' mois';
 
     // Dates
     const dDebut = '01/' + String(m+1).padStart(2,'0') + '/' + y;
-    const fIdx = (m + nbMois - 1) % 12;
-    const fAnn = y + Math.floor((m + nbMois - 1) / 12);
+    const lastMois = moisList[moisList.length - 1];
+    const fIdx = lastMois.m;
+    const fAnn = lastMois.y;
     const fJour = new Date(fAnn, fIdx+1, 0).getDate();
     const dFin = fJour + '/' + String(fIdx+1).padStart(2,'0') + '/' + fAnn;
     const ref = String(y) + String(m+1).padStart(2,'0') + appt;
@@ -824,8 +845,8 @@ async function genererQuittanceProprio(btn, idx) {
     const loyerM = nbMois > 1 ? Math.round(montantTotal/nbMois) : montantTotal;
 
     for (let mx = 0; mx < nbMois; mx++) {
-      const midx = (m + mx) % 12;
-      const yy = y + Math.floor((m + mx) / 12);
+      const midx = moisList[mx].m;
+      const yy = moisList[mx].y;
       const ldm = new Date(yy, midx+1, 0).getDate();
       const dm = '01/' + String(midx+1).padStart(2,'0') + '/' + yy;
       const fm2 = ldm + '/' + String(midx+1).padStart(2,'0') + '/' + yy;
@@ -1826,6 +1847,15 @@ async function validerMultiMois() {
     await new Promise(r => setTimeout(r, 800)); // attendre que WebApp finisse
     const r = await get('getLocataires');
     locataires = r.data || [];
+    // Stocker les mois couverts sur le locataire pour la quittance
+    const rowInt = parseInt(row);
+    const locIdx = locataires.findIndex(l => l.row === rowInt);
+    if (locIdx !== -1) {
+      locataires[locIdx].moisCouverts = moisSelec.map(m => m.slug);
+      locataires[locIdx].montantPaye = total;
+      locataires[locIdx].datePaie = dateFmt;
+      locataires[locIdx].modePaie = mode;
+    }
     chargerPaiements();
 
     // Feedback
