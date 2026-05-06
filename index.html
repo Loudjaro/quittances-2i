@@ -456,22 +456,19 @@ const get = async (a, retries=2) => {
   }
 };
 const post = async (b, retries=2) => {
-  // Encoder les données en GET pour compatibilité iOS Safari
-  const params = new URLSearchParams();
-  params.append('action', b.action);
-  Object.keys(b).forEach(k => {
-    if (k !== 'action') params.append(k, String(b[k]));
-  });
+  // GET au lieu de POST pour contourner les restrictions CORS iOS/Safari
   for (let i = 0; i <= retries; i++) {
     try {
-      const r = await fetch(WEBAPP + '?' + params.toString(), {
-        method: 'GET',
-        redirect: 'follow'
+      const params = new URLSearchParams();
+      Object.keys(b).forEach(k => {
+        if (b[k] !== undefined && b[k] !== null) params.append(k, String(b[k]));
       });
+      const url = WEBAPP + '?' + params.toString();
+      const r = await fetch(url, { method: 'GET', redirect: 'follow' });
       return r.json();
     } catch(e) {
       if (i === retries) throw e;
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise(res => setTimeout(res, 1000));
     }
   }
 };
