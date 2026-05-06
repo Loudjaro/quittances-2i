@@ -293,6 +293,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div id="mm-mois-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;"></div>
     </div>
     <div class="form-group">
+      <label class="form-label">Date du paiement</label>
+      <input type="date" id="mm-date">
+    </div>
+    <div class="form-group">
       <label class="form-label">Mode de paiement</label>
       <select id="mm-mode">
         <option value="Mobile Money">Mobile Money</option>
@@ -449,17 +453,22 @@ const get = async (a, retries=2) => {
   }
 };
 const post = async (b, retries=2) => {
+  // Encoder les données en GET pour compatibilité iOS Safari
+  const params = new URLSearchParams();
+  params.append('action', b.action);
+  Object.keys(b).forEach(k => {
+    if (k !== 'action') params.append(k, String(b[k]));
+  });
   for (let i = 0; i <= retries; i++) {
     try {
-      const r = await fetch(WEBAPP, {
-        method: 'POST',
-        body: JSON.stringify(b),
+      const r = await fetch(WEBAPP + '?' + params.toString(), {
+        method: 'GET',
         redirect: 'follow'
       });
       return r.json();
     } catch(e) {
       if (i === retries) throw e;
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 800));
     }
   }
 };
@@ -1752,6 +1761,9 @@ function openModalMultiMois(row, nom, prenom, loyer) {
     };
     list.appendChild(btn);
   }
+  // Date par défaut = aujourd'hui
+  const todayStr = new Date().toISOString().split('T')[0];
+  document.getElementById('mm-date').value = todayStr;
   updateMultiMoisTotal();
   openModal('modal-multimois');
 }
@@ -1782,6 +1794,11 @@ async function validerMultiMois() {
   closeModal('modal-multimois');
 
   try {
+    // Récupérer la date saisie
+    const dateInput = document.getElementById('mm-date').value;
+    const dateParts = dateInput ? dateInput.split('-') : [];
+    const dateFmt = dateParts.length === 3 ? dateParts[2]+'/'+dateParts[1]+'/'+dateParts[0] : new Date().toLocaleDateString('fr-FR');
+
     // 1. Marquer comme payé dans Feuille 1 avec le montant total et les mois
     await post({
       action: 'setPaye',
@@ -1790,7 +1807,8 @@ async function validerMultiMois() {
       modePaie: mode,
       nbMois: moisSelec.length,
       moisCouverts: moisSelec.map(m => m.slug).join(','),
-      montantTotal: total
+      montantTotal: total,
+      datePaiement: dateFmt
     });
 
     // 2. Recharger et afficher
