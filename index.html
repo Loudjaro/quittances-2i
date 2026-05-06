@@ -625,7 +625,7 @@ function chargerPaiements() {
             <div class="avatar av-green">${ini(l.nom+' '+l.prenom)}</div>
             <div>
               <div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div>
-              <div class="loc-sub">Appt ${l.appt} · ${fmt(l.montantPaye||((l.frequence||FREQ_REF[l.appt]||'Mensuel')==='Trimestriel'?3:(l.frequence||FREQ_REF[l.appt]||'Mensuel')==='Semestriel'?6:1)*l.loyer)} Fr · ${fmtDate(l.datePaie)}${(l.frequence||FREQ_REF[l.appt])&&(l.frequence||FREQ_REF[l.appt])!=='Mensuel'?' ('+(l.frequence||FREQ_REF[l.appt]).toLowerCase()+')':''}</div>
+              <div class="loc-sub">Appt ${l.appt} · ${fmt(l.montantPaye||(l.loyer*((l.frequence||FREQ_REF[l.appt]||'Mensuel')==='Trimestriel'?3:(l.frequence||FREQ_REF[l.appt]||'Mensuel')==='Semestriel'?6:1)))} Fr${l.moisCouverts&&l.moisCouverts.length>1?' · '+l.moisCouverts.length+' mois':((l.frequence||FREQ_REF[l.appt])&&(l.frequence||FREQ_REF[l.appt])!=='Mensuel'?' ('+(l.frequence||FREQ_REF[l.appt]).toLowerCase()+')':'')} · ${fmtDate(l.datePaie)}</div>
             </div>
           </div>
           <span class="pill pill-green">Payé</span>
