@@ -1105,6 +1105,8 @@ async function chargerTresorerie() {
 
     // Récapitulatif global
     const totalEncais = encaisC1 + encaisC2;
+    const depC1man = (c1.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
+    const depC2man = (c2.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
     const totalDepenses = depC1man + depC2man;
     const resultatNet = totalEncais - totalDepenses;
     h += `<div class="card" style="margin-top:14px;background:var(--gray-100);">
