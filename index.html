@@ -236,16 +236,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="modal-overlay" id="modal-travail">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Nouveau travail</div>
+    <div class="modal-title" id="modal-travail-titre">Nouveau travail</div>
+    <input type="hidden" id="t-row" value="">
     <div class="form-group"><label class="form-label">Appartement</label>
-      <select id="t-appt"><option>Espaces communs</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>10</option><option>11</option><option>12</option><option>20</option><option>21</option><option>30</option><option>31</option><option>14</option><option>V1</option><option>22</option><option>24</option><option>V31</option><option>VR</option></select></div>
+      <select id="t-appt"><option>Espaces communs</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>10</option><option>11</option><option>12</option><option>20</option><option>21</option><option>30</option><option>31</option><option>14</option><option>V1</option><option>22</option><option>24</option><option>32</option><option>33</option></select></div>
     <div class="form-group"><label class="form-label">Catégorie</label>
-      <select id="t-cat"><option>Plomberie</option><option>Électricité</option><option>Peinture / réfection</option><option>Climatisation</option><option>Espaces communs</option><option>Toiture</option><option>Autre</option></select></div>
+      <select id="t-cat"><option>Plomberie</option><option>Électricité</option><option>Peinture / réfection</option><option>Climatisation</option><option>Espaces communs</option><option>Toiture</option><option>Gros travaux</option><option>Autre</option></select></div>
     <div class="form-group"><label class="form-label">Description</label><textarea id="t-desc" placeholder="Décrivez les travaux..."></textarea></div>
-    <div class="form-group"><label class="form-label">Statut</label>
-      <select id="t-statut"><option>Devis</option><option>En cours</option><option>Terminé</option></select></div>
-    <div class="form-group"><label class="form-label">Montant devis (Fr CFA)</label><input type="number" id="t-devis" placeholder="0"></div>
     <div class="form-group"><label class="form-label">Artisan</label><input type="text" id="t-artisan" placeholder="Nom artisan"></div>
+    <div class="form-group"><label class="form-label">Statut</label>
+      <select id="t-statut"><option>Devis</option><option>Négociation</option><option>En cours</option><option>Terminé</option></select></div>
+    <div class="form-group"><label class="form-label">Devis initial (Fr CFA)</label><input type="number" id="t-devis" placeholder="0"></div>
+    <div class="form-group"><label class="form-label">Devis négocié (Fr CFA) — après réduction</label><input type="number" id="t-devis-negocie" placeholder="0"></div>
+    <div class="form-group"><label class="form-label">Facture finale acceptée (Fr CFA)</label><input type="number" id="t-facture-finale" placeholder="0"></div>
+    <div class="form-group"><label class="form-label">Note / échange</label><textarea id="t-notes" placeholder="Ex: 20% de réduction obtenu, acompte de 500 000 versé..."></textarea></div>
     <div class="form-actions">
       <button class="btn-cancel" onclick="closeModal('modal-travail')">Annuler</button>
       <button class="btn-save" onclick="sauvegarderTravail()">Enregistrer</button>
@@ -966,49 +970,26 @@ async function chargerTresorerie() {
   document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
 
   try {
-    // Loyers depuis locataires[] déjà en mémoire
-    const loyersC1 = [], loyersC2 = [];
-    let encaisC1 = 0, encaisC2 = 0;
-    locataires.filter(l => l.paye).forEach(l => {
-      const mode = (l.modePaie || '').toUpperCase();
-      // Caisse 2 = Virement bancaire + Dépôt bancaire
-      // Caisse 1 = Mobile Money + Espèces uniquement
-      // Caisse 2 = tout ce qui contient VIRE ou DEPOT ou DÉPÔT
-      const estBanque = mode.includes('VIRE') || mode.includes('DEPOT') || mode.includes('DÉPÔT');
-      // Fréquences connues — liste de référence par appartement
-      const FREQ_REF = {
-        'M3': 'Trimestriel',  // KONAN AYA
-        '21': 'Trimestriel',  // YAYA DAO
-      };
-      const freqL = (l.frequence || FREQ_REF[l.appt] || 'Mensuel').toString().trim();
-      const nbMoisL = freqL === 'Trimestriel' ? 3 : freqL === 'Semestriel' ? 6 : 1;
-      const loyer = l.loyer * nbMoisL;
-      const nom = l.nom + (l.prenom ? ' ' + l.prenom : '');
-      const entry = {
-        date: fmtDate(l.datePaie),
-        categorie: l.modePaie || 'Non spécifié',
-        description: 'Loyer ' + nom + ' - Appt ' + l.appt,
-        entree: loyer
-      };
-      if (estBanque) { encaisC2 += loyer; loyersC2.push(entry); }
-      else           { encaisC1 += loyer; loyersC1.push(entry); }
-    });
-
-    // Opérations manuelles depuis la WebApp
+    // Toutes les données viennent de WebApp (Recettes + Caisses), filtrées sur le mois courant
     const r = await get('getCaisses');
-    const d = r.data || { caisse1:{solde:0,operations:[]}, caisse2:{solde:0,operations:[]} };
+    const d = r.data || { caisse1:{solde:0,encaissementsMois:0,loyers:[],operations:[]}, caisse2:{solde:0,encaissementsMois:0,loyers:[],operations:[]} };
     const c1 = d.caisse1, c2 = d.caisse2;
+    const loyersC1 = c1.loyers || [];
+    const loyersC2 = c2.loyers || [];
+    let encaisC1 = c1.encaissementsMois || 0;
+    let encaisC2 = c2.encaissementsMois || 0;
 
     let h = '<div style="padding:14px;">';
 
-    // Soldes
-    // Soldes réels = encaissements loyers + opérations manuelles (entrées - sorties)
-    const depC1man = (c1.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
-    const entC1man = (c1.operations||[]).reduce((s,o)=>s+(o.entree||0),0);
-    const depC2man = (c2.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
-    const entC2man = (c2.operations||[]).reduce((s,o)=>s+(o.entree||0),0);
-    const soldeReel1 = encaisC1 + entC1man - depC1man;
-    const soldeReel2 = encaisC2 + entC2man - depC2man;
+    // Soldes réels = solde cumulatif de la caisse (toutes opérations confondues)
+    // + loyers du mois pas encore enregistrés en caisse (à déposer)
+    const depC1mois = (c1.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
+    const entC1mois = (c1.operations||[]).reduce((s,o)=>s+(o.entree||0),0);
+    const depC2mois = (c2.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
+    const entC2mois = (c2.operations||[]).reduce((s,o)=>s+(o.entree||0),0);
+    // Solde caisse = solde cumulatif enregistré dans Caisse1/Caisse2
+    const soldeReel1 = (c1.solde||0) + encaisC1;
+    const soldeReel2 = (c2.solde||0) + encaisC2;
     const soldeTotal = soldeReel1 + soldeReel2;
 
     h += '<div class="metrics">';
@@ -1409,7 +1390,7 @@ async function genererRelancesMois() {
 // TRAVAUX
 function chargerTravaux() {
   document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'travaux','navProprio');
-  let h=`<div style="padding:14px;"><button class="btn-primary" style="margin-bottom:14px;" onclick="openModal('modal-travail')">+ Nouveau travail</button>`;
+  let h=`<div style="padding:14px;"><button class="btn-primary" style="margin-bottom:14px;" onclick="document.getElementById('modal-travail-titre').textContent='Nouveau travail';document.getElementById('t-row').value='';document.getElementById('t-desc').value='';document.getElementById('t-devis').value='';document.getElementById('t-devis-negocie').value='';document.getElementById('t-facture-finale').value='';document.getElementById('t-notes').value='';openModal('modal-travail')">+ Nouveau travail</button>`;
   if(!travaux.length) { h+='<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:20px;">Aucun travail enregistré.</p>'; }
   else {
     const ec=travaux.filter(t=>t.statut!=='Terminé');
@@ -1422,16 +1403,28 @@ function chargerTravaux() {
 }
 
 function travailCard(t) {
-  const pc=t.statut==='Terminé'?'pill-green':t.statut==='En cours'?'pill-amber':'pill-blue';
+  const pc = t.statut==='Terminé' ? 'pill-green' : t.statut==='En cours' ? 'pill-amber' : t.statut==='Négociation' ? 'pill-violet' : 'pill-blue';
+  // Montant de référence : facture finale > devis négocié > devis initial
+  const montantRef = t.factureFinale || t.devisNegocie || t.devis || 0;
+  const montantLabel = t.factureFinale
+    ? fmt(t.factureFinale) + ' Fr (facture finale)'
+    : t.devisNegocie
+      ? fmt(t.devisNegocie) + ' Fr (négocié)'
+      : fmt(t.devis) + ' Fr (devis initial)';
+  const reduction = t.devis && t.devisNegocie ? Math.round((1 - t.devisNegocie/t.devis)*100) : 0;
   return `<div class="travail-card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-      <div style="flex:1;"><div style="font-size:14px;font-weight:600;">${t.desc||'Sans description'}</div>
-      <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">Appt ${t.appt}${t.artisan?' · '+t.artisan:''}</div></div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:600;">${t.desc||'Sans description'}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">Appt ${t.appt}${t.artisan?' · '+t.artisan:''}${t.categorie?' · '+t.categorie:''}</div>
+      </div>
       <span class="pill ${pc}">${t.statut}</span>
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--gray-100);">
-      <span style="font-size:13px;font-weight:600;color:var(--gray-900);">${fmt(t.devis)} Fr${t.reel?' · '+fmt(t.reel)+' Fr réel':''}</span>
-      ${t.statut!=='Terminé'?`<button class="btn-success-action" onclick="ouvrirTerminer(${t.row})">Terminer</button>`:''}
+    <div style="font-size:13px;font-weight:600;color:var(--gray-900);margin-bottom:6px;">${montantLabel}${reduction>0?' <span style="color:var(--green);font-size:11px;">(-'+reduction+'%)</span>':''}</div>
+    ${t.notes ? `<div style="font-size:11px;color:var(--gray-400);background:var(--gray-50);padding:6px 8px;border-radius:6px;margin-bottom:8px;white-space:pre-wrap;">${t.notes.split('\n').pop()}</div>` : ''}
+    <div style="display:flex;gap:8px;padding-top:8px;border-top:1px solid var(--gray-100);flex-wrap:wrap;">
+      <button class="btn-violet" style="font-size:11px;padding:5px 10px;" onclick="ouvrirEditerTravail(${t.row})">✏️ Modifier</button>
+      ${t.statut!=='Terminé' ? `<button class="btn-success-action" style="font-size:11px;padding:5px 10px;" onclick="ouvrirTerminer(${t.row})">✓ Terminer</button>` : ''}
     </div>
   </div>`;
 }
@@ -1456,13 +1449,46 @@ function chargerArtisans() {
   document.getElementById('proprio-content').innerHTML=h;
 }
 
+function ouvrirEditerTravail(row) {
+  const t = travaux.find(x => x.row === row);
+  if (!t) return;
+  document.getElementById('modal-travail-titre').textContent = 'Modifier le travail';
+  document.getElementById('t-row').value = row;
+  document.getElementById('t-appt').value = t.appt || 'Espaces communs';
+  document.getElementById('t-cat').value = t.categorie || 'Autre';
+  document.getElementById('t-desc').value = t.desc || '';
+  document.getElementById('t-artisan').value = t.artisan || '';
+  document.getElementById('t-statut').value = t.statut || 'Devis';
+  document.getElementById('t-devis').value = t.devis || '';
+  document.getElementById('t-devis-negocie').value = t.devisNegocie || '';
+  document.getElementById('t-facture-finale').value = t.factureFinale || '';
+  document.getElementById('t-notes').value = '';
+  openModal('modal-travail');
+}
+
 async function sauvegarderTravail() {
-  const data={appt:document.getElementById('t-appt').value,categorie:document.getElementById('t-cat').value,
-    desc:document.getElementById('t-desc').value,statut:document.getElementById('t-statut').value,
-    devis:parseInt(document.getElementById('t-devis').value)||0,artisan:document.getElementById('t-artisan').value,date:''};
+  const row = parseInt(document.getElementById('t-row').value) || 0;
+  const data = {
+    appt:          document.getElementById('t-appt').value,
+    categorie:     document.getElementById('t-cat').value,
+    desc:          document.getElementById('t-desc').value,
+    statut:        document.getElementById('t-statut').value,
+    devis:         parseInt(document.getElementById('t-devis').value)||0,
+    devisNegocie:  parseInt(document.getElementById('t-devis-negocie').value)||0,
+    factureFinale: parseInt(document.getElementById('t-facture-finale').value)||0,
+    artisan:       document.getElementById('t-artisan').value,
+    notes:         document.getElementById('t-notes').value,
+    date: ''
+  };
   closeModal('modal-travail');
-  await post({action:'addTravail',data});
-  const r=await get('getTravaux'); travaux=r.data||[];
+  if (row) {
+    await post({action:'updateTravail', row, data});
+  } else {
+    document.getElementById('modal-travail-titre').textContent = 'Nouveau travail';
+    document.getElementById('t-row').value = '';
+    await post({action:'addTravail', data});
+  }
+  const r = await get('getTravaux'); travaux = r.data || [];
   chargerTravaux();
 }
 
