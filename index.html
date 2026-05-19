@@ -658,13 +658,12 @@ function chargerPaiements() {
         </div>
         <div class="loc-actions">
           <select class="mode-select" id="mode-${l.row}">
-            <option value="Mobile Money">Mobile Money</option>
-            <option value="Espèces">Espèces</option>
-            <option value="Dépôt bancaire">Dépôt bancaire</option>
-            <option value="Virement bancaire">Virement bancaire</option>
+            ${['Mobile Money','Espèces','Dépôt bancaire','Virement bancaire'].map(m =>
+              `<option value="${m}" ${(l.modePaie||'').toUpperCase().replace(/\s+/g,'') === m.toUpperCase().replace(/\s+/g,'') ? 'selected' : ''}>${m}</option>`
+            ).join('')}
           </select>
           <button class="btn-blue" onclick="validerPaiement(${l.row},'${l.nom} ${l.prenom}')">✓ Valider</button>
-          <button class="btn-violet" onclick="openModalMultiMois(${l.row},'${l.nom}','${l.prenom}',${l.loyer})">+ Mois</button>
+          <button class="btn-violet" onclick="openModalMultiMois(${l.row},'${l.nom}','${l.prenom}',${l.loyer},'${(l.modePaie||'Mobile Money').replace(/'/g,"\\'")}')">+ Mois</button>
         </div>
       </div>`;
     });
@@ -1788,10 +1787,19 @@ async function genererPDFRelance(btn, msgId) {
 }
 
 // ── PAIEMENT MULTI-MOIS ──────────────────────────────────────
-function openModalMultiMois(row, nom, prenom, loyer) {
+function openModalMultiMois(row, nom, prenom, loyer, modePaie) {
   document.getElementById('mm-row').value = row;
   document.getElementById('mm-loyer').value = loyer;
   document.getElementById('multimois-titre').textContent = 'Paiement multi-mois — ' + nom + (prenom?' '+prenom:'');
+  // Pré-sélectionner le mode habituel du locataire
+  const sel = document.getElementById('mm-mode');
+  if (modePaie) {
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value.toUpperCase().replace(/\s+/g,'') === modePaie.toUpperCase().replace(/\s+/g,'')) {
+        sel.selectedIndex = i; break;
+      }
+    }
+  }
 
   // Générer les 6 derniers mois comme options
   const MOIS_NOMS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
