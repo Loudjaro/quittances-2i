@@ -3,318 +3,223 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Immeuble 2i">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Immeuble 2i</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
-  --blue:#2048F5; --blue-light:#E8EDFF; --blue-dark:#1535C4;
-  --violet:#8220F5; --violet-light:#F0E8FF;
-  --indigo:#3C20F5; --lavender:#BCB3F5;
-  --green:#16A34A; --green-light:#DCFCE7;
-  --red:#DC2626; --red-light:#FEE2E2;
-  --amber:#D97706; --amber-light:#FEF3C7;
-  --gray-50:#F8FAFF; --gray-100:#EEF2FF; --gray-200:#E2E8F0;
-  --gray-400:#94A3B8; --gray-600:#475569; --gray-900:#0F172A;
-  --white:#FFFFFF;
-  --shadow:0 1px 3px rgba(32,72,245,.08),0 1px 2px rgba(32,72,245,.06);
-  --shadow-md:0 4px 16px rgba(32,72,245,.12);
+  --blue:#1a56db; --blue-dark:#1e429f; --blue-light:#ebf5ff;
+  --green:#057a55; --green-light:#f3faf7;
+  --red:#e02424; --red-light:#fdf2f2;
+  --amber:#d97706; --amber-light:#fffbeb;
+  --violet:#7e3af2; --violet-light:#f5f3ff;
+  --gray-900:#111827; --gray-700:#374151; --gray-500:#6b7280;
+  --gray-400:#9ca3af; --gray-200:#e5e7eb; --gray-100:#f3f4f6; --gray-50:#f9fafb;
+  --white:#ffffff; --radius:14px; --shadow:0 2px 12px rgba(0,0,0,.08);
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--gray-50);color:var(--gray-900);max-width:480px;margin:0 auto;min-height:100vh;}
-
-/* TOPBAR */
-.topbar{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 60%,var(--indigo) 100%);padding:20px 16px 14px;position:sticky;top:0;z-index:20;box-shadow:var(--shadow-md);}
-.topbar-row{display:flex;justify-content:space-between;align-items:center;}
-.logo{font-size:18px;font-weight:700;color:var(--white);letter-spacing:-.3px;}
-.logo-badge{background:rgba(255,255,255,.2);color:var(--white);font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;margin-left:8px;vertical-align:middle;}
-.topbar-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:3px;}
-.sync-btn{background:rgba(255,255,255,.15);color:var(--white);border:1px solid rgba(255,255,255,.3);padding:6px 12px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;}
-.sync-btn:active{background:rgba(255,255,255,.25);}
-
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--gray-100);color:var(--gray-900);min-height:100vh;}
+.screen{display:none;} .screen.active{display:block;}
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;padding:16px 16px 12px;position:sticky;top:0;z-index:100;}
+.header-top{display:flex;justify-content:space-between;align-items:center;}
+.header h1{font-size:18px;font-weight:700;}
+.header-sub{font-size:12px;opacity:.75;margin-top:2px;}
+.btn-actualiser{background:rgba(255,255,255,.2);color:white;border:1.5px solid rgba(255,255,255,.4);padding:7px 14px;border-radius:99px;font-size:13px;font-weight:600;cursor:pointer;}
 /* NAV */
-.nav{display:flex;background:var(--white);border-bottom:1px solid var(--gray-200);position:sticky;top:62px;z-index:15;box-shadow:var(--shadow);}
-.nav-btn{flex:1;padding:12px 2px;font-size:11px;color:var(--gray-400);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;font-weight:500;transition:all .15s;}
-.nav-btn.active{color:var(--blue);font-weight:700;border-bottom:2px solid var(--blue);}
-
-/* SCREENS */
-.screen{padding:14px;display:none;}
-.screen.active{display:block;}
-
-/* LOGIN */
-.login-wrap{min-height:calc(100vh - 62px);display:flex;flex-direction:column;justify-content:center;padding:24px 20px;}
-.login-logo{text-align:center;margin-bottom:32px;}
-.login-icon{width:72px;height:72px;background:linear-gradient(135deg,var(--blue),var(--violet));border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:var(--shadow-md);}
-.login-icon svg{width:36px;height:36px;fill:none;stroke:#fff;stroke-width:2;}
-.login-title{font-size:24px;font-weight:700;color:var(--gray-900);}
-.login-sub{font-size:13px;color:var(--gray-400);margin-top:4px;}
-.login-card{background:var(--white);border-radius:20px;padding:24px 20px;box-shadow:var(--shadow-md);border:1px solid var(--gray-200);}
-.form-group{margin-bottom:16px;}
-.form-label{font-size:12px;color:var(--gray-600);margin-bottom:6px;display:block;font-weight:600;}
-.form-group input,.form-group select,.form-group textarea{width:100%;font-size:15px;padding:13px 14px;border:1.5px solid var(--gray-200);border-radius:12px;background:var(--gray-50);color:var(--gray-900);transition:border .15s;}
-.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--blue);background:var(--white);}
-.form-group textarea{height:90px;resize:none;}
-.remember-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
-.remember-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--blue);}
-.remember-row label{font-size:13px;color:var(--gray-600);}
-.btn-primary{display:block;width:100%;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));color:var(--white);border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(32,72,245,.3);}
-.btn-primary:active{opacity:.9;transform:scale(.99);}
-.error-box{background:var(--red-light);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--red);margin-bottom:14px;display:none;border-left:3px solid var(--red);}
-.success-box{background:var(--green-light);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--green);margin-bottom:14px;display:none;border-left:3px solid var(--green);}
-
-/* METRICS */
-.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.metric{background:var(--white);border-radius:14px;padding:14px;border:1px solid var(--gray-200);box-shadow:var(--shadow);}
-.metric.full{grid-column:1/-1;}
-.metric.blue{background:linear-gradient(135deg,var(--blue),var(--indigo));border:none;}
-.metric.blue .metric-label{color:rgba(255,255,255,.7);}
-.metric.blue .metric-val{color:var(--white);}
-.metric.blue .metric-sub{color:rgba(255,255,255,.6);}
-.metric-label{font-size:11px;color:var(--gray-400);margin-bottom:4px;font-weight:500;}
-.metric-val{font-size:20px;font-weight:700;color:var(--gray-900);}
-.metric-val.green{color:var(--green);}
-.metric-val.red{color:var(--red);}
-.metric-sub{font-size:10px;color:var(--gray-400);margin-top:2px;}
-
-/* PROGRESS */
-.prog-bg{background:var(--gray-200);border-radius:99px;height:8px;margin-bottom:14px;overflow:hidden;}
-.prog-fill{height:8px;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--violet));transition:width .5s;}
-
-/* SECTION TITLE */
-.stitle{font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;}
-
+.nav{display:flex;background:var(--white);border-bottom:1px solid var(--gray-200);overflow-x:auto;scrollbar-width:none;position:sticky;top:72px;z-index:99;}
+.nav::-webkit-scrollbar{display:none;}
+.nav-item{flex-shrink:0;padding:12px 14px;font-size:13px;font-weight:500;color:var(--gray-500);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;position:relative;}
+.nav-item.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+.badge{display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:white;border-radius:99px;font-size:10px;font-weight:700;min-width:17px;height:17px;padding:0 4px;margin-left:4px;}
 /* CARDS */
-.card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
-.card-title{font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;}
-
-/* LOC CARDS */
-.loc-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow);}
-.loc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:0;}
-.loc-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
-.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
-.av-blue{background:var(--blue-light);color:var(--blue);}
-.av-green{background:var(--green-light);color:var(--green);}
-.av-red{background:var(--red-light);color:var(--red);}
-.av-violet{background:var(--violet-light);color:var(--violet);}
-.av-amber{background:var(--amber-light);color:var(--amber);}
-.loc-nom{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gray-900);}
-.loc-sub{font-size:11px;color:var(--gray-400);margin-top:1px;}
-.loc-actions{margin-top:10px;padding-top:10px;border-top:1px solid var(--gray-100);display:flex;gap:8px;flex-wrap:wrap;}
-
+.card{background:var(--white);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.stat-card{background:var(--blue);color:white;border-radius:var(--radius);padding:16px;}
+.stat-card.light{background:var(--white);border:1px solid var(--gray-200);color:var(--gray-900);}
+.stat-label{font-size:11px;opacity:.8;margin-bottom:4px;font-weight:500;}
+.stat-val{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.stat-sub{font-size:11px;opacity:.7;margin-top:2px;}
+/* PROGRESS */
+.progress-bar{height:6px;background:var(--gray-200);border-radius:3px;margin:10px 0;}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--violet));}
+/* LOCATAIRES */
+.section-title{font-size:11px;font-weight:700;color:var(--gray-500);letter-spacing:.05em;text-transform:uppercase;padding:12px 16px 6px;}
+.loc-card{background:var(--white);border-radius:var(--radius);margin:0 10px 8px;padding:14px;box-shadow:var(--shadow);}
+.loc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.loc-info{display:flex;align-items:center;gap:10px;}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+.av-green{background:#d1fae5;color:#065f46;}
+.av-red{background:#fee2e2;color:#991b1b;}
+.av-gray{background:var(--gray-100);color:var(--gray-500);}
+.loc-nom{font-size:14px;font-weight:600;}
+.loc-sub{font-size:11px;color:var(--gray-500);margin-top:2px;}
+.loc-actions{display:flex;gap:7px;flex-wrap:wrap;}
 /* PILLS */
-.pill{font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px;border:none;cursor:default;white-space:nowrap;}
+.pill{display:inline-flex;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;}
 .pill-green{background:var(--green-light);color:var(--green);}
 .pill-red{background:var(--red-light);color:var(--red);}
 .pill-amber{background:var(--amber-light);color:var(--amber);}
 .pill-blue{background:var(--blue-light);color:var(--blue);}
 .pill-violet{background:var(--violet-light);color:var(--violet);}
-
-/* BUTTONS */
-.btn-blue{padding:8px 14px;background:var(--blue);color:var(--white);border:none;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;}
-.btn-blue:active{opacity:.85;}
-.btn-green{padding:8px 14px;background:var(--green-light);color:var(--green);border:none;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;}
-.btn-red{padding:8px 14px;background:var(--red-light);color:var(--red);border:none;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;}
-.btn-violet{padding:8px 14px;background:var(--violet-light);color:var(--violet);border:none;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;}
-.btn-outline{display:block;width:100%;padding:12px 14px;background:var(--white);color:var(--gray-900);border:1.5px solid var(--gray-200);border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:8px;text-align:left;}
-.btn-outline:hover{border-color:var(--blue);color:var(--blue);}
-.logout{display:block;width:100%;padding:12px;background:transparent;color:var(--gray-400);border:1px solid var(--gray-200);border-radius:12px;font-size:13px;cursor:pointer;margin-top:12px;text-align:center;}
-
-/* SELECT MODE PAIEMENT */
-.mode-select{font-size:12px;padding:6px 10px;border:1.5px solid var(--gray-200);border-radius:99px;background:var(--white);color:var(--gray-600);cursor:pointer;}
+/* BOUTONS */
+button{cursor:pointer;border:none;border-radius:99px;font-weight:600;transition:opacity .15s;}
+button:active{opacity:.7;}
+.btn-primary{background:var(--blue);color:white;padding:10px 18px;font-size:13px;width:100%;}
+.btn-blue{background:var(--blue);color:white;padding:7px 14px;font-size:12px;}
+.btn-red{background:var(--red-light);color:var(--red);padding:7px 14px;font-size:12px;}
+.btn-violet{background:var(--violet-light);color:var(--violet);padding:7px 14px;font-size:12px;}
+.btn-green{background:var(--green-light);color:var(--green);padding:7px 14px;font-size:12px;}
+.btn-gray{background:var(--gray-100);color:var(--gray-700);padding:7px 14px;font-size:12px;}
+.btn-save{background:var(--blue);color:white;padding:12px 24px;font-size:14px;flex:1;}
+.btn-cancel{background:var(--gray-100);color:var(--gray-700);padding:12px 24px;font-size:14px;flex:1;}
+/* SELECT */
+.mode-select{font-size:12px;padding:6px 10px;border:1.5px solid var(--gray-200);border-radius:99px;background:var(--white);color:var(--gray-700);cursor:pointer;}
 .mode-select:focus{outline:none;border-color:var(--blue);}
-
-/* ROW */
-.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--gray-100);font-size:13px;}
-.row:last-child{border-bottom:none;}
-.row.total{font-weight:700;padding-top:12px;border-top:1.5px solid var(--gray-200);border-bottom:none;}
-.row-label{color:var(--gray-600);}
-.row-val{font-weight:600;color:var(--gray-900);}
-.row-val.pos{color:var(--green);}
-.row-val.neg{color:var(--red);}
-
-/* TRAVAUX */
-.travail-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:14px;margin-bottom:8px;box-shadow:var(--shadow);}
-.artisan-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:13px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow);}
-.artisan-av{width:42px;height:42px;border-radius:50%;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
-
-/* QUITTANCES */
-.quittance-row{background:var(--white);border:1px solid var(--gray-200);border-radius:12px;padding:13px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow);}
-
-/* LOADING */
-.loading-box{text-align:center;padding:50px 20px;color:var(--gray-400);font-size:14px;}
-.spinner{width:32px;height:32px;border:3px solid var(--gray-200);border-top:3px solid var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px;}
-.spinner-inline{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.4);border-top:2px solid #fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* ALERT */
-.alert-amber{background:var(--amber-light);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--amber);margin-top:6px;border-left:3px solid var(--amber);}
-.alert-blue{background:var(--blue-light);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--blue);margin-top:6px;border-left:3px solid var(--blue);}
-
-/* TAB TOGGLE */
-.tab-toggle{display:flex;background:var(--gray-100);border-radius:12px;padding:3px;margin-bottom:14px;}
-.tab-toggle button{flex:1;padding:8px;font-size:12px;border:none;border-radius:10px;cursor:pointer;background:transparent;color:var(--gray-400);font-weight:500;}
-.tab-toggle button.active{background:var(--white);color:var(--blue);font-weight:700;box-shadow:var(--shadow);}
-
-/* WELCOME LOCATAIRE */
-.welcome{background:linear-gradient(135deg,var(--indigo),var(--violet));border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow-md);}
-.welcome-nom{font-size:18px;font-weight:700;color:var(--white);}
-.welcome-sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:3px;}
-.welcome-badge{background:rgba(255,255,255,.2);color:var(--white);font-size:10px;font-weight:600;padding:3px 10px;border-radius:99px;display:inline-block;margin-top:8px;}
-
 /* MODAL */
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,.6);z-index:100;align-items:flex-end;backdrop-filter:blur(4px);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--white);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-height:88vh;overflow-y:auto;}
-.modal-handle{width:36px;height:4px;background:var(--gray-200);border-radius:99px;margin:0 auto 16px;}
-.modal-title{font-size:17px;font-weight:700;color:var(--gray-900);margin-bottom:18px;}
-.form-actions{display:flex;gap:10px;margin-top:18px;}
-.form-actions button{flex:1;padding:13px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;border:none;}
-.btn-cancel{background:var(--gray-100);color:var(--gray-600);}
-.btn-save{background:linear-gradient(135deg,var(--blue),var(--indigo));color:var(--white);box-shadow:0 4px 12px rgba(32,72,245,.25);}
-.btn-success-action{padding:8px 14px;background:var(--green-light);color:var(--green);border:none;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;}
+.modal{background:var(--white);border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-height:90vh;overflow-y:auto;}
+.modal-handle{width:36px;height:4px;background:var(--gray-200);border-radius:2px;margin:0 auto 16px;}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:16px;}
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:6px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:14px;background:var(--white);}
+.form-group textarea{min-height:80px;resize:vertical;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--blue);}
+.form-actions{display:flex;gap:10px;margin-top:20px;}
+/* TRÉSORERIE */
+.trés-section{font-size:11px;font-weight:700;color:var(--gray-500);letter-spacing:.05em;text-transform:uppercase;padding:14px 16px 6px;}
+.op-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--gray-100);}
+.op-row:last-child{border-bottom:none;}
+.op-label{font-size:13px;font-weight:500;}
+.op-sub{font-size:11px;color:var(--gray-500);margin-top:2px;}
+.op-val.pos{color:var(--green);font-weight:600;font-size:13px;}
+.op-val.neg{color:var(--red);font-weight:600;font-size:13px;}
+/* ARCHIVES */
+.arch-table{width:100%;border-collapse:collapse;font-size:11px;}
+.arch-table th{background:var(--gray-100);padding:6px 4px;text-align:center;font-weight:600;font-size:10px;}
+.arch-table td{padding:5px 4px;text-align:center;border-bottom:1px solid var(--gray-100);}
+.arch-table td:first-child{text-align:left;font-size:11px;font-weight:500;}
+/* FINANCES */
+.fin-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--gray-100);}
+.fin-row:last-child{border-bottom:none;font-weight:700;font-size:15px;}
+/* TRAVAUX */
+.travail-card{background:var(--white);border-radius:var(--radius);padding:14px;margin-bottom:8px;box-shadow:var(--shadow);}
+/* LOGIN */
+.login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(160deg,var(--blue-dark),var(--blue));}
+.login-card{background:white;border-radius:20px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.login-logo{text-align:center;margin-bottom:24px;}
+.login-logo h1{font-size:22px;font-weight:800;color:var(--blue);}
+.login-logo p{font-size:12px;color:var(--gray-500);margin-top:4px;}
+/* ERREUR */
+.erreur{color:var(--red);text-align:center;padding:16px;font-size:14px;}
+/* MOIS MULTI */
+.mois-checkbox{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-100);cursor:pointer;}
+.mois-checkbox:last-child{border-bottom:none;}
+.mois-cb{width:20px;height:20px;border-radius:6px;border:2px solid var(--gray-300,#d1d5db);cursor:pointer;}
+.mois-nom{font-size:14px;font-weight:500;}
+.mois-sub{font-size:11px;color:var(--gray-500);}
+/* NUMÉRO TRANSACTION */
+.num-trans-wrap{background:var(--blue-light);border-radius:10px;padding:10px 12px;margin-bottom:12px;display:none;}
+.num-trans-wrap.visible{display:block;}
+/* SCROLL FIX */
+.content{padding:10px 0 80px;}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-row">
-    <div>
-      <div class="logo">Immeuble 2i <span class="logo-badge" id="user-badge" style="display:none;"></span></div>
-      <div class="topbar-sub" id="topbar-sub">Palmeraies, Cocody / Abidjan</div>
-    </div>
-    <button class="sync-btn" id="sync-btn" style="display:none;" onclick="actualiser()">Actualiser</button>
-  </div>
-</div>
-
-<!-- LOGIN -->
-<div id="screen-login">
+<!-- ═══════════════════ LOGIN ═══════════════════ -->
+<div id="screen-login" class="screen active">
   <div class="login-wrap">
-    <div class="login-logo">
-      <div class="login-icon">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <div class="login-title">Immeuble 2i</div>
-      <div class="login-sub">Espace de gestion immobilière</div>
-    </div>
     <div class="login-card">
-      <div class="error-box" id="login-error">Identifiant ou mot de passe incorrect.</div>
+      <div class="login-logo">
+        <h1>Immeuble 2i</h1>
+        <p>2i Immobilier SCI — Palmeraies, Cocody</p>
+      </div>
       <div class="form-group">
         <label class="form-label">Identifiant</label>
-        <input type="text" id="input-id" placeholder="Votre identifiant" autocomplete="username">
+        <input type="text" id="login-id" placeholder="proprio_diaby" autocomplete="username">
       </div>
       <div class="form-group">
         <label class="form-label">Mot de passe</label>
-        <input type="password" id="input-mdp" placeholder="••••••" autocomplete="current-password">
+        <input type="password" id="login-mdp" placeholder="••••••••" autocomplete="current-password">
       </div>
-      <div class="remember-row">
-        <input type="checkbox" id="remember-me" checked>
-        <label for="remember-me">Mémoriser mon identifiant</label>
-      </div>
+      <div id="login-err" style="color:var(--red);font-size:13px;margin-bottom:10px;display:none;"></div>
       <button class="btn-primary" onclick="seConnecter()">Se connecter</button>
-    </div>
-    <p style="font-size:12px;color:var(--gray-400);text-align:center;margin-top:16px;">Vos identifiants vous ont été communiqués par la direction.</p>
-  </div>
-</div>
-
-<!-- INTERFACE PROPRIÉTAIRE -->
-<div id="screen-proprio" style="display:none;">
-  <div id="proprio-nav"></div>
-  <div id="proprio-content"></div>
-</div>
-
-<!-- INTERFACE LOCATAIRE -->
-<div id="screen-locataire" style="display:none;">
-  <div id="locataire-nav"></div>
-  <div id="locataire-content"></div>
-</div>
-
-<!-- MODAL TRAVAIL -->
-<div class="modal-overlay" id="modal-travail">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-travail-titre">Nouveau travail</div>
-    <input type="hidden" id="t-row" value="">
-    <div class="form-group"><label class="form-label">Appartement</label>
-      <select id="t-appt"><option>Espaces communs</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>10</option><option>11</option><option>12</option><option>20</option><option>21</option><option>30</option><option>31</option><option>14</option><option>V1</option><option>22</option><option>24</option><option>32</option><option>33</option></select></div>
-    <div class="form-group"><label class="form-label">Catégorie</label>
-      <select id="t-cat"><option>Plomberie</option><option>Électricité</option><option>Peinture / réfection</option><option>Climatisation</option><option>Espaces communs</option><option>Toiture</option><option>Gros travaux</option><option>Autre</option></select></div>
-    <div class="form-group"><label class="form-label">Description</label><textarea id="t-desc" placeholder="Décrivez les travaux..."></textarea></div>
-    <div class="form-group"><label class="form-label">Artisan</label><input type="text" id="t-artisan" placeholder="Nom artisan"></div>
-    <div class="form-group"><label class="form-label">Statut</label>
-      <select id="t-statut"><option>Devis</option><option>Négociation</option><option>En cours</option><option>Terminé</option></select></div>
-    <div class="form-group"><label class="form-label">Devis initial (Fr CFA)</label><input type="number" id="t-devis" placeholder="0"></div>
-    <div class="form-group"><label class="form-label">Devis négocié (Fr CFA) — après réduction</label><input type="number" id="t-devis-negocie" placeholder="0"></div>
-    <div class="form-group"><label class="form-label">Facture finale acceptée (Fr CFA)</label><input type="number" id="t-facture-finale" placeholder="0"></div>
-    <div class="form-group"><label class="form-label">Note / échange</label><textarea id="t-notes" placeholder="Ex: 20% de réduction obtenu, acompte de 500 000 versé..."></textarea></div>
-    <div class="form-actions">
-      <button class="btn-cancel" onclick="closeModal('modal-travail')">Annuler</button>
-      <button class="btn-save" onclick="sauvegarderTravail()">Enregistrer</button>
+      <div style="text-align:center;margin-top:16px;">
+        <span style="font-size:12px;color:var(--gray-500);">Accès locataire ? </span>
+        <button style="background:none;color:var(--blue);font-size:12px;font-weight:600;padding:0;" onclick="afficherPortail()">Portail locataire →</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- MODAL ARTISAN -->
-<div class="modal-overlay" id="modal-artisan">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Nouvel artisan</div>
-    <div class="form-group"><label class="form-label">Nom</label><input type="text" id="a-nom" placeholder="Kouassi Jean"></div>
-    <div class="form-group"><label class="form-label">Spécialité</label>
-      <select id="a-spec"><option>Plomberie</option><option>Électricité</option><option>Peinture / réfection</option><option>Climatisation</option><option>Toiture</option><option>Polyvalent</option></select></div>
-    <div class="form-group"><label class="form-label">Téléphone</label><input type="tel" id="a-tel" placeholder="00225XXXXXXXX"></div>
-    <div class="form-group"><label class="form-label">Note /5</label><input type="number" id="a-note" min="1" max="5" placeholder="5"></div>
-    <div class="form-group"><label class="form-label">Commentaire</label><textarea id="a-comment" placeholder="Fiable, tarifs raisonnables..."></textarea></div>
-    <div class="form-actions">
-      <button class="btn-cancel" onclick="closeModal('modal-artisan')">Annuler</button>
-      <button class="btn-save" onclick="sauvegarderArtisan()">Enregistrer</button>
+<!-- ═══════════════════ APP PROPRIÉTAIRE ═══════════════════ -->
+<div id="screen-proprio" class="screen">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <h1>Immeuble 2i</h1>
+          <span class="pill pill-blue" style="font-size:10px;">Propriétaire</span>
+        </div>
+        <div class="header-sub" id="proprio-nom">—</div>
+      </div>
+      <button class="btn-actualiser" onclick="actualiser()">Actualiser</button>
     </div>
   </div>
+  <div class="nav" id="proprio-nav"></div>
+  <div class="content" id="proprio-content"></div>
 </div>
 
-<!-- MODAL TERMINER TRAVAIL -->
-<div class="modal-overlay" id="modal-terminer">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Marquer comme terminé</div>
-    <div class="form-group"><label class="form-label">Coût réel (Fr CFA)</label><input type="number" id="terminer-montant" placeholder="0"></div>
-    <div class="form-actions">
-      <button class="btn-cancel" onclick="closeModal('modal-terminer')">Annuler</button>
-      <button class="btn-save" onclick="confirmerTerminer()">Confirmer</button>
+<!-- ═══════════════════ PORTAIL LOCATAIRE ═══════════════════ -->
+<div id="screen-portail" class="screen">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <h1>Portail Locataire</h1>
+        <div class="header-sub" id="portail-nom">—</div>
+      </div>
+      <button class="btn-actualiser" onclick="deconnecterLocataire()">Quitter</button>
     </div>
   </div>
+  <div class="content" id="portail-content"></div>
 </div>
 
-<!-- MODAL PAIEMENT MULTI-MOIS -->
+<!-- ═══════════════════ MODALS ═══════════════════ -->
+
+<!-- Modal multi-mois -->
 <div class="modal-overlay" id="modal-multimois">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="multimois-titre">Paiement plusieurs mois</div>
-    <input type="hidden" id="mm-row">
+    <div class="modal-title" id="mm-titre">Paiement multi-mois</div>
+    <input type="hidden" id="mm-idloc">
     <input type="hidden" id="mm-loyer">
     <div class="form-group">
-      <label class="form-label">Mois couverts</label>
-      <div id="mm-mois-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;"></div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Date du paiement</label>
+      <label class="form-label">Date de paiement</label>
       <input type="date" id="mm-date">
     </div>
     <div class="form-group">
       <label class="form-label">Mode de paiement</label>
-      <select id="mm-mode">
+      <select id="mm-mode" onchange="toggleNumTrans('mm')">
         <option value="Mobile Money">Mobile Money</option>
         <option value="Espèces">Espèces</option>
         <option value="Dépôt bancaire">Dépôt bancaire</option>
         <option value="Virement bancaire">Virement bancaire</option>
       </select>
     </div>
-    <div class="card" style="background:var(--blue-light);margin-bottom:0;">
-      <div class="row"><span class="row-label">Mois sélectionnés</span><span id="mm-nb-mois" class="row-val">0</span></div>
-      <div class="row"><span class="row-label">Montant total</span><span id="mm-total" class="row-val" style="color:var(--blue);">0 Fr</span></div>
+    <div class="num-trans-wrap" id="mm-num-wrap">
+      <label class="form-label">N° transaction Mobile Money</label>
+      <input type="text" id="mm-num-trans" placeholder="Ex: OM-20260506-XXXX">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mois à couvrir</label>
+      <div id="mm-mois-list"></div>
+    </div>
+    <div class="card" style="background:var(--blue-light);margin-bottom:16px;">
+      <div style="font-size:12px;color:var(--blue);font-weight:600;">Total à encaisser</div>
+      <div style="font-size:20px;font-weight:700;color:var(--blue);margin-top:4px;" id="mm-total">0 Fr CFA</div>
     </div>
     <div class="form-actions">
       <button class="btn-cancel" onclick="closeModal('modal-multimois')">Annuler</button>
@@ -323,332 +228,283 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- MODAL NOUVEAU MESSAGE -->
-<div class="modal-overlay" id="modal-nouveau-message">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Nouveau message</div>
-    <div class="form-group"><label class="form-label">Destinataire</label>
-      <select id="msg-dest" onchange="updateMsgAppt()"></select>
-    </div>
-    <div class="form-group"><label class="form-label">Type</label>
-      <select id="msg-type">
-        <option>Relance loyer</option>
-        <option>Avis de travaux</option>
-        <option>Renouvellement de bail</option>
-        <option>Communication générale</option>
-      </select>
-    </div>
-    <div class="form-group"><label class="form-label">Objet</label>
-      <input type="text" id="msg-objet" placeholder="Objet du message">
-    </div>
-    <div class="form-group"><label class="form-label">Message</label>
-      <textarea id="msg-texte" placeholder="Votre message..." style="height:120px;"></textarea>
-    </div>
-    <div class="form-actions">
-      <button class="btn-cancel" onclick="closeModal('modal-nouveau-message')">Annuler</button>
-      <button class="btn-save" onclick="envoyerNouveauMessage()">Envoyer</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL RÉPONDRE -->
-<div class="modal-overlay" id="modal-repondre">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-repondre-titre">Répondre</div>
-    <input type="hidden" id="rep-appt">
-    <input type="hidden" id="rep-dest">
-    <div class="form-group"><label class="form-label">Message</label>
-      <textarea id="rep-texte" placeholder="Votre réponse..." style="height:120px;"></textarea>
-    </div>
-    <div class="form-actions">
-      <button class="btn-cancel" onclick="closeModal('modal-repondre')">Annuler</button>
-      <button class="btn-save" onclick="envoyerReponse()">Envoyer</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL DÉPENSE -->
+<!-- Modal dépense -->
 <div class="modal-overlay" id="modal-depense">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-depense-titre">Nouvelle dépense</div>
-    <div class="form-group"><label class="form-label">Catégorie</label><select id="depense-cat"></select></div>
-    <div class="form-group"><label class="form-label">Description</label><input type="text" id="depense-desc" placeholder="Détail de la dépense"></div>
-    <div class="form-group"><label class="form-label">Montant (Fr CFA)</label><input type="number" id="depense-montant" placeholder="0"></div>
-    <div class="form-group"><label class="form-label">Observations</label><input type="text" id="depense-obs" placeholder="Optionnel"></div>
+    <div class="modal-title" id="dep-titre">Nouvelle dépense</div>
+    <input type="hidden" id="dep-caisse">
+    <div class="form-group">
+      <label class="form-label">Catégorie</label>
+      <select id="dep-cat">
+        <option>Salaire gardien</option>
+        <option>Eau / Électricité</option>
+        <option>Petits travaux</option>
+        <option>Gros travaux</option>
+        <option>Taxe foncière</option>
+        <option>Assurance</option>
+        <option>Commission agence</option>
+        <option>Autre</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input type="text" id="dep-desc" placeholder="Détail de la dépense">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Montant (Fr CFA)</label>
+      <input type="number" id="dep-montant" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <input type="text" id="dep-notes" placeholder="Optionnel">
+    </div>
     <div class="form-actions">
       <button class="btn-cancel" onclick="closeModal('modal-depense')">Annuler</button>
-      <button class="btn-save" onclick="sauvegarderDepense()">Enregistrer</button>
+      <button class="btn-save" onclick="validerDepense()">Enregistrer</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL TRANSFERT -->
-<div class="modal-overlay" id="modal-transfert">
+<!-- Modal travail -->
+<div class="modal-overlay" id="modal-travail">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Transfert Caisse 1 → Banque</div>
-    <div class="form-group"><label class="form-label">Montant à transférer (Fr CFA)</label><input type="number" id="transfert-montant" placeholder="0"></div>
-    <div class="form-group"><label class="form-label">Observations</label><input type="text" id="transfert-obs" placeholder="Optionnel"></div>
-    <div class="form-actions">
-      <button class="btn-cancel" onclick="closeModal('modal-transfert')">Annuler</button>
-      <button class="btn-save" onclick="sauvegarderTransfert()">Confirmer</button>
+    <div class="modal-title" id="trav-titre">Nouveau travail</div>
+    <input type="hidden" id="trav-id">
+    <div class="form-group">
+      <label class="form-label">Appartement concerné</label>
+      <select id="trav-appt">
+        <option value="BAT001">Espaces communs / Bâtiment</option>
+        <option value="APT-M1">M1</option><option value="APT-M2">M2</option>
+        <option value="APT-M3">M3</option><option value="APT-M4">M4</option>
+        <option value="APT-10">10</option><option value="APT-11">11</option>
+        <option value="APT-12">12</option><option value="APT-13">13</option>
+        <option value="APT-20">20</option><option value="APT-21">21</option>
+        <option value="APT-30">30</option><option value="APT-31">31</option>
+        <option value="APT-02">2</option><option value="APT-14">14</option>
+        <option value="APT-V1">V1</option><option value="APT-22">22</option>
+        <option value="APT-23">23</option><option value="APT-24">24</option>
+        <option value="APT-32">32</option><option value="APT-33">33</option>
+      </select>
     </div>
-  </div>
-</div>
-
-<!-- MODAL SIGNALEMENT -->
-<div class="modal-overlay" id="modal-signal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Signaler un problème</div>
-    <div class="success-box" id="signal-ok">Signalement envoyé. Nous vous contacterons rapidement.</div>
-    <div class="form-group"><label class="form-label">Type de problème</label>
-      <select id="signal-type"><option>Plomberie</option><option>Électricité</option><option>Climatisation</option><option>Serrure / Porte</option><option>Parties communes</option><option>Autre</option></select></div>
-    <div class="form-group"><label class="form-label">Description</label><textarea id="signal-desc" placeholder="Décrivez le problème..."></textarea></div>
-    <div class="form-group"><label class="form-label">Urgence</label>
-      <select id="signal-urgence"><option>Normal</option><option>Urgent</option><option>Très urgent</option></select></div>
+    <div class="form-group">
+      <label class="form-label">Catégorie</label>
+      <select id="trav-cat">
+        <option>Plomberie</option><option>Électricité</option>
+        <option>Peinture / réfection</option><option>Climatisation</option>
+        <option>Espaces communs</option><option>Toiture</option>
+        <option>Gros travaux</option><option>Autre</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea id="trav-desc" placeholder="Détail des travaux..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Artisan</label>
+      <input type="text" id="trav-artisan" placeholder="Nom de l'artisan">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Statut</label>
+      <select id="trav-statut">
+        <option>Devis</option><option>Négociation</option>
+        <option>En cours</option><option>Terminé</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Devis initial (Fr CFA)</label>
+      <input type="number" id="trav-devis" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Devis négocié (après réduction)</label>
+      <input type="number" id="trav-devis-neg" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Facture finale acceptée</label>
+      <input type="number" id="trav-facture" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note / échange</label>
+      <textarea id="trav-notes" placeholder="Ex: réduction de 20% obtenue, acompte versé..."></textarea>
+    </div>
     <div class="form-actions">
-      <button class="btn-cancel" onclick="closeModal('modal-signal')">Annuler</button>
-      <button class="btn-save" onclick="envoyerSignalement()">Envoyer</button>
+      <button class="btn-cancel" onclick="closeModal('modal-travail')">Annuler</button>
+      <button class="btn-save" onclick="sauvegarderTravail()">Enregistrer</button>
     </div>
   </div>
 </div>
 
 <script>
-const LOGO_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAABRCAYAAAAw7F/uAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAHV0lEQVR4nO2d7XbcOAiGX5C793+/sWB/IPRhe6bpbtWoEc85PZ3MjD1O/AYQCEKqqgiC3wx/9QUE35MQVjCFEFYwhRBWMIUQVjCFEFYwhRBWMIUQVjCFEFYwhRBWMIUQVjCFEFYwhRBWMIXjqy9gdVQVUAVAANnXRAQi+upLWxqKbTPPqCpEBMwMKqIqrwAAROwxcxj9J+Kn8sAgKmqWSkTMeIHAbEoTU1hwISzWA+7ugCKc4gntRfuPE9/eGzQixir0VsrF4r9zLqL+vTfxASAQiENkQLjCiipA1EQFVWgR2hUXXTX2av9yzn/2ohdme1co2awNJ65CcUukIqAXwblbKRfeYOUU21uurS2WipqlYjKBuQFStYdvYiciulkzF5eIQDa3XtsKS1UBJqSjWByoWRktwvrJaq/ltzpB5Qw5M1JKIG4WcEe2E5aq4jxPALbQ81gppWTPsVmimmp4cx50xwNAOg6guENPouactxTYVsIyS2QiIiLkMwP660lOES1JU8I13cCJAepiN2ZI1u3EtY2wRAWqCk5uicz1vQrO32PHulCvlq0F//ZaOtgWjhuJawthiQiQr5bpv9X7tFg4P/bV6q8JuHxdrFvOe2Tqv72warzDDMnyMij3gP2dVRGRWwnHE6qt3NNB3bmzgNDiuu/Odnms67fbZ88JQM6KdDwH7jkLmAkEQhap9ULPXakq0pG6D4MlWgnblX22K+nU+KcTmKcOKCUk0ltADpjwOJmoxK1PyVmZRaT7OQXdroi92E5Yjpdt6uMiEgC3VWKubqyohAEmrsdea4dA0RMBuAhuF7YVFjBuWiBms1oXS2WiUKsjitaVpeP5qpuVI9rWWgEbBO+fxVMH+WwBvFkilEw6QVQeV4FyZmgWSD6fTjz70pdka4vVQ0SgNMZfOQuS77sCXmbjuQTsN5entfy4HSGsgoo7xpb8TCUXlc9sRed0N/DXHRHdC7bLgQi6obzCFTpk4pKSkwKaWIjum/0+i25qtkJYBXOFAHMLxOuu0pR+euzDk4DHYxsG8SGsgpda+p0OcuaWYvhFXrrITQhhFbjPN5UsOh/pf+0E3TF/5WwsrHtpx3eFqopl1z9pbZ4EVI/ViLE2416ysZUhgBcrwMezVAFhzFmprzH3ZGNhPVsZLTsYftVa6ZDHL+dXLxf9hsv9y9g2j3X1Xm0eA4F/ITbq+w97AdVunR1VhQ2F5e7Ok6BunfpaX01qflZfzYM2ul2kxXT9nm/gL2E7YfUGpC8gA2O7/DgI5PPn7M/tQdaOi8P9hAUzHrW7RhVUaoBNZNdhDYS6y2aIyP3BVVl+zJ7xFbDhDtLgz7DxqjCYybdxhX3heNcyykosLaw+qAbGZGRfavG5C5Ro+xrdKizrCkXExgIRhpZ3IkAkD/15SgoqjQ7bproXY8ngfWhqkJLTZkBy6V6m0TL1zQwiWnd9Bl/HknegX/qLSjFC1x2aY1zlnTUhqjVY8i64sEQElLg2hl6Ho3m5REXrrFDZpIV9dZYUlpNSutXa+rHrQxbd53++CNpX8PjypoXfy0sAbM5WGdz27piVWVpYV1qDA5DPzjINInt94778Br35+D5NQsT421P2S6cbenLO47xPvncsGz+/Ide+Qb4sCICxFd8nzKh6TGef+zp3phAvdhNXI+oLDxFvgr0c11niviB+5dX8U3tNa+jwlfwVFqvORwCVIWYXUXl5D683ETzNYhAxvyoiyGe2QWywG+WPoQr5yDjPXN2wpTtyvcH2mu/Lsv3zLiwRgajvpxecHx+dy7Ovy8fUNjFV1Kk4vdjzmcvcCBqOhQLneSLnvMwmiqUtlscd3tzgY4bStWtm2Af1LK7b5L2u+VSyDaM9/rFRj0RALmKAb1nu5l2Z0NHGS5Ld6HQkyGmW1ZtfAeD8OEEHA+UXonb9MJBzuTbQUNLWzmJVa9q1oR18QCTXQbwiih8/0jKJ4XWF5XulwIAAAqnT8Z4gIst5iba2qxf4HwqoxzKBf6ROkQTmJho6xhv27q9RMN//iICJQevwkfH9vtK1GVpgd50uenP7vmJx16wqgCjANnfiONYRFbCwsLylHWhzFXorYG6pzagyEdJbV9iPcOyDAB8dOXx+n9Z4POf4ZN04mBVPqTSiMvtBMYqrG4TLNa4r4k0E4rLNp/xQmgUD0MWGK4kKWDTGqtt6yw+RmMAXS9U3wdTnHqzF5czlfdf57A/vFDWXJCaWt+/X0oNIBLDFXI7FW8WtirnFPn4a/ppF7T4bFxEtAdx3afMwXfDLV7wX1rVYmgEhq+W0Z+2mqtbmhf43VlVKjPW8kuLiZu6rJr3FZtVKXC8BqOdpb0Y9OKXU6pzwqkBxq4mRyKYBkvrg22Pouk6chg2C/aqUiSHVFT5b2FVYslb4fbh27uzDkq7w+7CnqIAQVjCJEFYwhRBWMIUQVjCFEFYwhRBWMIUQVjCFEFYwhRBWMIUQVjCFEFYwhRBWMIUQVjCFEFYwhRBWMIUQVjCFfwHQzpEwzbElFAAAAABJRU5ErkJggg==';
+// ═══════════════ CONFIG ════════════════
 const WEBAPP = 'https://script.google.com/macros/s/AKfycbwB00iuO89YWpYOhQ0JqeJqoUWeYpH7kc1hUxfu2yZ-ZfOo7w1witfIgYyBjSgWXcW43w/exec';
-const CHARGES = 370000, LOYER_TH = 4560000;
 const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-const PROPRIO = {
-  'proprio_diaby':    {mdp:'Diaby2i2026',    nom:'Madame Diaby Djeneba'},
-  'proprio_musandji': {mdp:'Musandji2i2026', nom:'Monsieur Musandji Nzanza Roger'}
-};
 
-let session=null, locataires=[], travaux=[], artisans=[], travailRow=null, periodeF='mensuel', _nonLusProps=0, _messages=[];
+// ═══════════════ ÉTAT ════════════════
+let session  = null; // { type:'proprio'|'locataire', nom, id }
+let locataires = [];
+let travaux  = [];
 
-// ── UTILS ─────────────────────────────────────────────────────
-const fmt = n => Math.round(n||0).toLocaleString('fr-FR');
-const fmtDate = d => {
-  if(!d) return '';
-  // Si déjà au format dd/MM/yyyy
-  if(/^\d{2}\/\d{2}\/\d{4}$/.test(d)) return d;
-  // Extraire depuis format ISO ou Date string
-  const match = d.toString().match(/(\d{4})-(\d{2})-(\d{2})/);
-  if(match) return match[3]+'/'+match[2]+'/'+match[1];
-  // Tenter de parser
-  const dt = new Date(d);
-  if(!isNaN(dt)) return dt.toLocaleDateString('fr-FR');
-  return d;
-};
-const ini = s => (s||'').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-const moisLbl = slug => { const y=slug.slice(0,4),m=parseInt(slug.slice(4,6))-1; return MOIS[m]+' '+y; };
-const get = async (a, retries=2) => {
-  for (let i = 0; i <= retries; i++) {
-    try {
-      const r = await fetch(WEBAPP + '?action=' + a, {
-        method: 'GET',
-        redirect: 'follow'
-      });
-      return r.json();
-    } catch(e) {
-      if (i === retries) throw e;
-      await new Promise(r => setTimeout(r, 1000));
-    }
-  }
-};
-const post = async (b, retries=2) => {
-  // GET au lieu de POST pour contourner les restrictions CORS iOS/Safari
-  for (let i = 0; i <= retries; i++) {
-    try {
-      const params = new URLSearchParams();
-      Object.keys(b).forEach(k => {
-        if (b[k] !== undefined && b[k] !== null) params.append(k, String(b[k]));
-      });
-      const url = WEBAPP + '?' + params.toString();
-      const r = await fetch(url, { method: 'GET', redirect: 'follow' });
-      return r.json();
-    } catch(e) {
-      if (i === retries) throw e;
-      await new Promise(res => setTimeout(res, 1000));
-    }
-  }
-};
+// ═══════════════ API ════════════════
+async function get(action, params={}) {
+  params.action = action;
+  const url = WEBAPP + '?' + new URLSearchParams(params).toString();
+  const r = await fetch(url, { redirect:'follow' });
+  return r.json();
+}
 
-// ── MÉMOIRE IDENTIFIANT ───────────────────────────────────────
-window.addEventListener('load', () => {
-  const savedId = localStorage.getItem('2i_login_id');
-  if (savedId) {
-    document.getElementById('input-id').value = savedId;
-    document.getElementById('remember-me').checked = true;
-    const savedMdp = localStorage.getItem('2i_login_mdp_' + savedId);
-    if (savedMdp) {
-      document.getElementById('input-mdp').value = savedMdp;
-    }
-  }
-  const p = new URLSearchParams(location.search);
-  if (p.get('id')) document.getElementById('input-id').value = decodeURIComponent(p.get('id'));
-});
+async function post(params) {
+  const url = WEBAPP + '?' + new URLSearchParams(params).toString();
+  const r = await fetch(url, { redirect:'follow' });
+  return r.json();
+}
 
-// ── CONNEXION ─────────────────────────────────────────────────
+// ═══════════════ UTILS ════════════════
+const fmt = n => Math.round(n).toLocaleString('fr-FR');
+const ini = s => (s||'').split(' ').map(w=>w[0]||'').join('').substring(0,2).toUpperCase();
+const fmtDate = s => { if(!s) return ''; const p=s.toString().split('/'); return p.length===3?p[0]+'/'+p[1]+'/'+p[2]:s; };
+const slugVersLabel = slug => { if(!slug||slug.length<6) return slug; const y=slug.slice(0,4),m=parseInt(slug.slice(4,6))-1; return MOIS[m]+' '+y; };
+const dateAujourdhui = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const slugDuMois = () => { const d=new Date(); return String(d.getFullYear())+String(d.getMonth()+1).padStart(2,'0'); };
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function toggleNumTrans(prefix) {
+  const mode = document.getElementById(prefix+'-mode').value;
+  const wrap = document.getElementById(prefix+'-num-wrap');
+  if(wrap) wrap.classList.toggle('visible', mode === 'Mobile Money');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════ LOGIN ════════════════
 async function seConnecter() {
-  const id = document.getElementById('input-id').value.trim();
-  const mdp = document.getElementById('input-mdp').value.trim();
-  if (!id||!mdp) { errLogin('Veuillez renseigner vos identifiants.'); return; }
-
-  if (PROPRIO[id] && PROPRIO[id].mdp === mdp) {
-    if (document.getElementById('remember-me').checked) {
-      localStorage.setItem('2i_login_id', id);
-      localStorage.setItem('2i_login_mdp_' + id, mdp);
-    } else {
-      localStorage.removeItem('2i_login_id');
-      localStorage.removeItem('2i_login_mdp_' + id);
-    }
-    session = {type:'proprio', id, nom:PROPRIO[id].nom};
-    ouvrirProprio();
-    return;
-  }
-  if (document.getElementById('remember-me').checked) {
-    localStorage.setItem('2i_login_id', id);
-    localStorage.setItem('2i_login_mdp_' + id, mdp);
+  const id  = document.getElementById('login-id').value.trim();
+  const mdp = document.getElementById('login-mdp').value.trim();
+  const err = document.getElementById('login-err');
+  err.style.display = 'none';
+  if (!id || !mdp) { err.textContent='Remplissez les deux champs.'; err.style.display='block'; return; }
+  const r = await get('authProprio', { id, mdp });
+  if (r.success) {
+    session = { type:'proprio', nom:r.nom, id };
+    document.getElementById('proprio-nom').textContent = r.nom;
+    showScreen('screen-proprio');
+    await chargerDonnees();
+    afficherOnglet('paiements');
   } else {
-    localStorage.removeItem('2i_login_id');
-    localStorage.removeItem('2i_login_mdp_' + id);
+    err.textContent = 'Identifiants incorrects.';
+    err.style.display = 'block';
   }
-
-  try {
-    const r = await fetch(WEBAPP+'?action=getPortail&id='+encodeURIComponent(id)+'&mdp='+encodeURIComponent(mdp));
-    const d = await r.json();
-    if (d.success) {
-      session = {type:'locataire', id, ...d.locataire};
-      ouvrirLocataire();
-    } else { errLogin('Identifiant ou mot de passe incorrect.'); }
-  } catch(e) { errLogin('Erreur de connexion. Vérifiez votre réseau.'); }
 }
 
-function errLogin(msg) {
-  const el=document.getElementById('login-error');
-  el.textContent=msg; el.style.display='block';
-}
+function afficherPortail() { showScreen('screen-portail'); chargerPortailLogin(); }
 
-// ── PROPRIO ───────────────────────────────────────────────────
-async function ouvrirProprio() {
-  document.getElementById('screen-login').style.display='none';
-  document.getElementById('screen-proprio').style.display='block';
-  document.getElementById('user-badge').textContent='Propriétaire';
-  document.getElementById('user-badge').style.display='inline';
-  document.getElementById('topbar-sub').textContent=session.nom;
-  document.getElementById('sync-btn').style.display='block';
-  chargerPaiements();
-  const [r1,r2,r3]=await Promise.all([
-    get('getLocataires'), get('getTravaux'), get('getArtisans')
-  ]);
-  locataires=r1.data||[]; travaux=r2.data||[]; artisans=r3.data||[];
-  // Charger messages séparément sans bloquer si erreur
-  try {
-    const r4 = await get('getMessages');
-    _messages = r4.messages||[];
-    _nonLusProps = _messages.filter(m=>m.expediteur!=='Propriétaire'&&m.lu==='Non').length;
-  } catch(e) { _messages=[]; _nonLusProps=0; }
-  chargerPaiements();
+function deconnecterLocataire() { showScreen('screen-login'); }
+
+// ═══════════════ CHARGEMENT ════════════════
+async function chargerDonnees() {
+  const r = await get('getLocataires');
+  locataires = r.data || [];
 }
 
 async function actualiser() {
-  document.getElementById('sync-btn').textContent='...';
-  const [r1,r2,r3]=await Promise.all([get('getLocataires'),get('getTravaux'),get('getArtisans')]);
-  locataires=r1.data||[]; travaux=r2.data||[]; artisans=r3.data||[];
-  if (document.querySelector('#proprio-nav .nav-btn.active')) {
-    const onglet = document.querySelector('#proprio-nav .nav-btn.active').dataset.onglet;
-    if(onglet==='paiements') chargerPaiements();
-    else if(onglet==='travaux') chargerTravaux();
-  }
-  document.getElementById('sync-btn').textContent='Actualiser';
+  await chargerDonnees();
+  const ongletActif = document.querySelector('.nav-item.active');
+  if (ongletActif) afficherOnglet(ongletActif.dataset.onglet);
 }
 
-function navProprio(onglet) {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'], onglet, 'navProprio');
-  if(onglet==='paiements') chargerPaiements();
-  else if(onglet==='finances') chargerFinances();
-  else if(onglet==='archives') chargerArchives();
-  else if(onglet==='tresorerie') chargerTresorerie();
-  else if(onglet==='messages') chargerMessages();
-  else if(onglet==='travaux') chargerTravaux();
-  else if(onglet==='artisans') chargerArtisans();
+// ═══════════════ NAVIGATION ════════════════
+const NAV_ITEMS = [
+  { id:'paiements', label:'Paiements' },
+  { id:'archives',  label:'Archives' },
+  { id:'finances',  label:'Finances' },
+  { id:'tresorerie',label:'Trésorerie' },
+  { id:'messages',  label:'Messages', badge:true },
+  { id:'travaux',   label:'Travaux' },
+  { id:'artisans',  label:'Artisans' },
+];
+
+function renderNav(actif) {
+  return NAV_ITEMS.map(n =>
+    `<div class="nav-item${n.id===actif?' active':''}" data-onglet="${n.id}" onclick="afficherOnglet('${n.id}')">${n.label}</div>`
+  ).join('');
 }
 
-function renderNav(items, active, fn) {
-  let h='<div class="nav" style="overflow-x:auto;">';
-  for(let i=0;i<items.length;i+=2) {
-    let label = items[i+1];
-    if (items[i]==='messages' && _nonLusProps > 0) {
-      label += ' <span style="background:#DC2626;color:#fff;border-radius:99px;padding:1px 6px;font-size:10px;">' + _nonLusProps + '</span>';
-    }
-    const btnClass = 'nav-btn ' + (items[i]===active ? 'active' : '');
-    h += '<button class="' + btnClass + '" data-onglet="' + items[i] + '" onclick="' + fn + '(\'' + items[i] + '\')">' + label + '</button>';
-  }
-  return h+'</div>';
+function afficherOnglet(id) {
+  document.getElementById('proprio-nav').innerHTML = renderNav(id);
+  const c = document.getElementById('proprio-content');
+  c.innerHTML = `<div style="padding:40px;text-align:center;color:var(--gray-400);">Chargement…</div>`;
+  if      (id==='paiements')  chargerPaiements();
+  else if (id==='archives')   chargerArchives();
+  else if (id==='finances')   chargerFinances();
+  else if (id==='tresorerie') chargerTresorerie();
+  else if (id==='messages')   chargerMessages();
+  else if (id==='travaux')    chargerTravaux();
+  else if (id==='artisans')   chargerArtisans();
 }
 
-// PAIEMENTS
+// ═══════════════ PAIEMENTS ════════════════
 function chargerPaiements() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'paiements','navProprio');
-  const payes=locataires.filter(l=>l.paye);
-  const nonPayes=locataires.filter(l=>!l.paye);
-  // Montant réel = somme des montantPaye depuis Recettes (multi-mois inclus)
-  const FREQ_REF = { 'M3': 'Trimestriel', '21': 'Trimestriel' };
-  const montant = payes.reduce((s,l) => {
-    if (l.montantPaye && l.montantPaye > 0) return s + l.montantPaye;
-    const freq = (l.frequence || FREQ_REF[l.appt] || 'Mensuel').toString().trim();
-    const nb = freq === 'Trimestriel' ? 3 : freq === 'Semestriel' ? 6 : 1;
-    return s + l.loyer * nb;
-  }, 0);
-  const pct=locataires.length?Math.round(payes.length/locataires.length*100):0;
+  const payes    = locataires.filter(l=>l.paye);
+  const enAttente= locataires.filter(l=>!l.paye);
+  const FREQ_REF = { 'APT-M3':'Bimensuel', 'APT-21':'Trimestriel' };
 
-  let h=`<div style="padding:14px;">
-    <div class="metrics">
-      <div class="metric blue">
-        <div class="metric-label">Encaissé ce mois</div>
-        <div class="metric-val">${fmt(montant)}</div>
-        <div class="metric-sub">Fr CFA</div>
+  const totalEnc = payes.reduce((s,l) => s + (l.montantPaye > 0 ? l.montantPaye : l.loyer), 0);
+  const pct      = locataires.length ? Math.round(payes.length/locataires.length*100) : 0;
+
+  let h = `<div style="padding:14px;">
+    <div class="card-grid">
+      <div class="stat-card">
+        <div class="stat-label">Encaissé ce mois</div>
+        <div class="stat-val">${fmt(totalEnc)}</div>
+        <div class="stat-sub">Fr CFA</div>
       </div>
-      <div class="metric">
-        <div class="metric-label">Recouvrement</div>
-        <div class="metric-val" style="color:var(--blue)">${pct}%</div>
-        <div class="metric-sub">${payes.length}/${locataires.length} locataires</div>
+      <div class="stat-card light">
+        <div class="stat-label" style="color:var(--gray-500);">Recouvrement</div>
+        <div class="stat-val" style="color:${pct>=80?'var(--green)':pct>=50?'var(--amber)':'var(--red)'};">${pct}%</div>
+        <div class="stat-sub" style="color:var(--gray-500);">${payes.length}/${locataires.length} locataires</div>
       </div>
     </div>
-    <div class="prog-bg"><div class="prog-fill" style="width:${pct}%"></div></div>`;
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>`;
 
-  if(payes.length) {
-    h+=`<div class="stitle">Payés (${payes.length})</div>`;
-    payes.forEach((l, _i) => {
-      h+=`<div class="loc-card">
-        <div class="loc-top">
-          <div class="loc-left">
+  if (payes.length) {
+    h += `<div class="section-title">Payés (${payes.length})</div>`;
+    payes.forEach((l,i) => {
+      const montant = l.montantPaye > 0 ? l.montantPaye : l.loyer;
+      const nbMois  = l.moisCouverts.length;
+      const moisLabel = nbMois > 1 ? ` · ${nbMois} mois` : '';
+      h += `<div class="loc-card">
+        <div class="loc-head">
+          <div class="loc-info">
             <div class="avatar av-green">${ini(l.nom+' '+l.prenom)}</div>
             <div>
               <div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div>
-              <div class="loc-sub">Appt ${l.appt} · ${fmt(l.montantPaye||(l.loyer*((l.frequence||FREQ_REF[l.appt]||'Mensuel')==='Trimestriel'?3:(l.frequence||FREQ_REF[l.appt]||'Mensuel')==='Semestriel'?6:1)))} Fr${l.moisCouverts&&l.moisCouverts.length>1?' · '+l.moisCouverts.length+' mois':((l.frequence||FREQ_REF[l.appt])&&(l.frequence||FREQ_REF[l.appt])!=='Mensuel'?' ('+(l.frequence||FREQ_REF[l.appt]).toLowerCase()+')':'')} · ${fmtDate(l.datePaie)}</div>
+              <div class="loc-sub">Appt ${l.appt} · ${fmt(montant)} Fr${moisLabel} · ${fmtDate(l.datePaie)}</div>
             </div>
           </div>
           <span class="pill pill-green">Payé</span>
         </div>
         <div class="loc-actions">
-                    <button class="btn-violet" onclick="genererQuittanceProprio(this,${_i})">📄 PDF</button>
-          <button class="btn-red" onclick="annulerPaiement(${l.row},'${l.nom}')">Annuler</button>
+          <button class="btn-violet" onclick="genererQuittance(${i})">📄 PDF</button>
+          <button class="btn-red" onclick="annulerPaiement('${l.id}','${l.nom}')">Annuler</button>
         </div>
       </div>`;
     });
   }
 
-  if(nonPayes.length) {
-    h+=`<div class="stitle" style="margin-top:14px;">En attente (${nonPayes.length})</div>`;
-    nonPayes.forEach(l => {
-      h+=`<div class="loc-card">
-        <div class="loc-top">
-          <div class="loc-left">
+  if (enAttente.length) {
+    h += `<div class="section-title">En attente (${enAttente.length})</div>`;
+    enAttente.forEach(l => {
+      const modeActuel = l.modePaie || 'Mobile Money';
+      const opts = ['Mobile Money','Espèces','Dépôt bancaire','Virement bancaire']
+        .map(m=>`<option value="${m}"${modeActuel.toUpperCase().replace(/\s+/g,'')=== m.toUpperCase().replace(/\s+/g,'')?' selected':''}>${m}</option>`).join('');
+      h += `<div class="loc-card">
+        <div class="loc-head">
+          <div class="loc-info">
             <div class="avatar av-red">${ini(l.nom+' '+l.prenom)}</div>
             <div>
               <div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div>
@@ -657,1417 +513,623 @@ function chargerPaiements() {
           </div>
         </div>
         <div class="loc-actions">
-          <select class="mode-select" id="mode-${l.row}">
-            ${['Mobile Money','Espèces','Dépôt bancaire','Virement bancaire'].map(m =>
-              `<option value="${m}" ${(l.modePaie||'').toUpperCase().replace(/\s+/g,'') === m.toUpperCase().replace(/\s+/g,'') ? 'selected' : ''}>${m}</option>`
-            ).join('')}
-          </select>
-          <button class="btn-blue" onclick="validerPaiement(${l.row},'${l.nom} ${l.prenom}')">✓ Valider</button>
-          <button class="btn-violet" onclick="openModalMultiMois(${l.row},'${l.nom}','${l.prenom}',${l.loyer},'${(l.modePaie||'Mobile Money').replace(/'/g,"\\'")}')">+ Mois</button>
+          <select class="mode-select" id="mode-${l.id}" onchange="onModeChange('${l.id}')">${opts}</select>
+          <div class="num-trans-wrap${modeActuel==='Mobile Money'?' visible':''}" id="nt-wrap-${l.id}" style="display:${modeActuel==='Mobile Money'?'block':'none'}">
+            <input type="text" id="nt-${l.id}" placeholder="N° transaction" style="font-size:12px;padding:5px 8px;border:1px solid var(--gray-200);border-radius:8px;width:140px;">
+          </div>
+          <button class="btn-blue" onclick="validerPaiement('${l.id}')">✓ Valider</button>
+          <button class="btn-violet" onclick="ouvrirMultiMois('${l.id}','${l.nom}','${l.prenom}',${l.loyer},'${modeActuel}')">+ Mois</button>
         </div>
       </div>`;
     });
   }
 
-  h+=`<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>`;
-  document.getElementById('proprio-content').innerHTML=h;
+  h += `<button class="btn-gray" style="margin:16px 0;width:calc(100% - 20px);margin-left:10px;" onclick="deconnecterProprio()">Se déconnecter</button></div>`;
+  document.getElementById('proprio-content').innerHTML = h;
 }
 
-async function validerPaiement(row, nom) {
-  if (!confirm('Confirmer le paiement de ' + nom + ' ?')) return;
-  const mode = document.getElementById('mode-' + row)?.value || 'Dépôt bancaire';
-  try {
-    await post({action:'setPaye', row:parseInt(row), paye:true, modePaie:mode});
-    await new Promise(r => setTimeout(r, 800));
-    const r = await get('getLocataires');
-    locataires = r.data || [];
+function onModeChange(idLoc) {
+  const mode = document.getElementById('mode-'+idLoc).value;
+  const wrap = document.getElementById('nt-wrap-'+idLoc);
+  if (wrap) wrap.style.display = mode === 'Mobile Money' ? 'block' : 'none';
+}
+
+async function validerPaiement(idLoc) {
+  const mode    = document.getElementById('mode-'+idLoc)?.value || 'Mobile Money';
+  const numTrans= document.getElementById('nt-'+idLoc)?.value || '';
+  const today   = dateAujourdhui();
+  const slugMois= slugDuMois();
+  const l       = locataires.find(x=>x.id===idLoc);
+  if (!l) return;
+  const r = await post({ action:'setPaye', idLoc, paye:'true', modePaie:mode,
+    moisCouverts:slugMois, montantTotal:l.loyer, datePaiement:today, numTransaction:numTrans });
+  if (r.success) { await chargerDonnees(); chargerPaiements(); }
+  else alert('Erreur: ' + (r.error||'inconnue'));
+}
+
+async function annulerPaiement(idLoc, nom) {
+  if (!confirm('Annuler le paiement de '+nom+' ?')) return;
+  await post({ action:'setPaye', idLoc, paye:'false', moisCouverts:slugDuMois() });
+  await chargerDonnees(); chargerPaiements();
+}
+
+function deconnecterProprio() { session=null; showScreen('screen-login'); }
+
+// ═══════════════ MULTI-MOIS ════════════════
+function ouvrirMultiMois(idLoc, nom, prenom, loyer, modePaie) {
+  document.getElementById('mm-idloc').value  = idLoc;
+  document.getElementById('mm-loyer').value  = loyer;
+  document.getElementById('mm-titre').textContent = 'Multi-mois — '+(nom+(prenom?' '+prenom:''));
+  document.getElementById('mm-date').value   = dateAujourdhui();
+  // Pré-sélectionner le mode
+  const sel = document.getElementById('mm-mode');
+  for (let i=0;i<sel.options.length;i++) {
+    if (sel.options[i].value.toUpperCase().replace(/\s+/g,'') === (modePaie||'').toUpperCase().replace(/\s+/g,'')) { sel.selectedIndex=i; break; }
+  }
+  toggleNumTrans('mm');
+  // Générer les 6 derniers mois
+  const today = new Date();
+  const list  = document.getElementById('mm-mois-list');
+  list.innerHTML = '';
+  for (let i=5;i>=-2;i--) {
+    const d    = new Date(today.getFullYear(), today.getMonth()-i, 1);
+    const slug = String(d.getFullYear())+String(d.getMonth()+1).padStart(2,'0');
+    const label= MOIS[d.getMonth()]+' '+d.getFullYear();
+    const isPast = i > 0;
+    list.innerHTML += `<label class="mois-checkbox">
+      <input type="checkbox" class="mois-cb" value="${slug}" onchange="majTotalMM(${loyer})">
+      <div><div class="mois-nom">${label}</div>${isPast?'<div class="mois-sub">Mois passé</div>':''}</div>
+    </label>`;
+  }
+  majTotalMM(loyer);
+  openModal('modal-multimois');
+}
+
+function majTotalMM(loyer) {
+  const count = document.querySelectorAll('#mm-mois-list input:checked').length;
+  document.getElementById('mm-total').textContent = fmt(loyer*count) + ' Fr CFA';
+}
+
+async function validerMultiMois() {
+  const idLoc   = document.getElementById('mm-idloc').value;
+  const loyer   = parseInt(document.getElementById('mm-loyer').value)||0;
+  const mode    = document.getElementById('mm-mode').value;
+  const numTrans= document.getElementById('mm-num-trans').value||'';
+  const dateVal = document.getElementById('mm-date').value;
+  const moisSelec = [...document.querySelectorAll('#mm-mois-list input:checked')].map(c=>c.value);
+  if (!moisSelec.length) { alert('Sélectionnez au moins un mois.'); return; }
+  const total = loyer * moisSelec.length;
+  const dateF = dateVal.split('-').reverse().join('/');
+  closeModal('modal-multimois');
+  const r = await post({ action:'setPaye', idLoc, paye:'true', modePaie:mode,
+    moisCouverts:moisSelec.join(','), montantTotal:total,
+    datePaiement:dateF, numTransaction:numTrans });
+  if (r.success) {
+    // Mettre à jour en mémoire
+    const idx = locataires.findIndex(l=>l.id===idLoc);
+    if (idx !== -1) {
+      locataires[idx].paye = true;
+      locataires[idx].montantPaye = total;
+      locataires[idx].moisCouverts = moisSelec;
+      locataires[idx].datePaie = dateF;
+      locataires[idx].modePaieMois = mode;
+    }
     chargerPaiements();
-  } catch(e) {
-    alert('Erreur: ' + e.message);
-  }
+  } else { alert('Erreur: '+(r.error||'inconnue')); }
 }
 
-async function annulerPaiement(row, nom) {
-  if (!confirm('Annuler le paiement de ' + nom + ' ?')) return;
-  try {
-    await post({action:'setPaye', row:parseInt(row), paye:false});
-    const r = await get('getLocataires');
-    locataires = r.data || [];
-    chargerPaiements();
-  } catch(e) {
-    alert('Erreur annulation: ' + e.message);
-  }
+// ═══════════════ QUITTANCE PDF ════════════════
+function genererQuittance(idx) {
+  const l = locataires.filter(x=>x.paye)[idx];
+  if (!l) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const W=210, margin=15;
+  // Header bleu
+  doc.setFillColor(26,86,219); doc.rect(0,0,W,35,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(16); doc.setFont(undefined,'bold');
+  doc.text('2i Immobilier',margin,15);
+  doc.setFontSize(9); doc.setFont(undefined,'normal');
+  doc.text('Palmeraies, Cocody — Abidjan, Côte d\'Ivoire',margin,22);
+  // Badge
+  doc.setFillColor(255,255,255); doc.roundedRect(W-margin-40,6,40,12,3,3,'F');
+  doc.setTextColor(26,86,219); doc.setFontSize(10); doc.setFont(undefined,'bold');
+  const nbM = l.moisCouverts.length;
+  const typeLabel = nbM>1 ? nbM+' mois' : '';
+  if (typeLabel) doc.text(typeLabel, W-margin-20, 14, {align:'center'});
+  // Titre
+  doc.setTextColor(17,24,39); doc.setFontSize(14); doc.setFont(undefined,'bold');
+  doc.text('QUITTANCE DE LOYER', margin, 50);
+  const moisLabel = nbM===1 ? slugVersLabel(l.moisCouverts[0]) : slugVersLabel(l.moisCouverts[0])+' à '+slugVersLabel(l.moisCouverts[nbM-1]);
+  doc.setFontSize(10); doc.setFont(undefined,'normal'); doc.setTextColor(107,114,128);
+  doc.text(moisLabel, margin, 57);
+  // Infos
+  const infoY = 68;
+  doc.setTextColor(17,24,39); doc.setFontSize(11); doc.setFont(undefined,'bold');
+  doc.text('BAILLEUR', margin, infoY);
+  doc.setFont(undefined,'normal'); doc.setFontSize(10);
+  doc.text('Madame Diaby Djeneba', margin, infoY+7);
+  doc.text('2i Immobilier SCI', margin, infoY+13);
+  doc.setFont(undefined,'bold'); doc.text('LOCATAIRE', W/2, infoY);
+  doc.setFont(undefined,'normal');
+  doc.text(l.nom+(l.prenom?' '+l.prenom:''), W/2, infoY+7);
+  doc.text('Appartement '+l.appt, W/2, infoY+13);
+  // Tableau
+  const tabY = 100;
+  doc.setFillColor(243,244,246); doc.rect(margin, tabY, W-2*margin, 8, 'F');
+  doc.setFontSize(10); doc.setFont(undefined,'bold'); doc.setTextColor(55,65,81);
+  doc.text('Période', margin+3, tabY+5.5);
+  doc.text('Loyer mensuel', margin+65, tabY+5.5);
+  doc.text('Montant (Fr CFA)', W-margin-3, tabY+5.5, {align:'right'});
+  let y0 = tabY+8;
+  l.moisCouverts.forEach(slug => {
+    const midx = parseInt(slug.slice(4,6))-1;
+    const yy   = slug.slice(0,4);
+    doc.setFont(undefined,'normal'); doc.setTextColor(17,24,39); doc.setFontSize(10);
+    doc.text('Loyer '+MOIS[midx]+' '+yy, margin+3, y0+5);
+    doc.text(fmt(l.loyer)+' Fr', margin+65, y0+5);
+    doc.text(fmt(l.loyer), W-margin-3, y0+5, {align:'right'});
+    y0 += 9;
+    doc.setDrawColor(229,231,235); doc.line(margin, y0, W-margin, y0);
+  });
+  // Total
+  doc.setFillColor(26,86,219); doc.rect(margin, y0, W-2*margin, 10,'F');
+  doc.setTextColor(255,255,255); doc.setFont(undefined,'bold'); doc.setFontSize(11);
+  doc.text('TOTAL ENCAISSÉ', margin+3, y0+7);
+  const montantTotal = l.montantPaye > 0 ? l.montantPaye : l.loyer*nbM;
+  doc.text(fmt(montantTotal)+' Fr CFA', W-margin-3, y0+7, {align:'right'});
+  // Pied
+  const piedY = y0+20;
+  doc.setTextColor(107,114,128); doc.setFont(undefined,'normal'); doc.setFontSize(9);
+  doc.text('Mode de paiement : '+(l.modePaieMois||l.modePaie), margin, piedY);
+  if (l.numTransaction) doc.text('N° transaction : '+l.numTransaction, margin, piedY+6);
+  doc.text('Date : '+fmtDate(l.datePaie), margin, piedY+(l.numTransaction?12:6));
+  // Signature
+  const sigY = Math.max(piedY+25, 230);
+  doc.setFillColor(243,244,246); doc.rect(W-margin-60, sigY, 60, 28, 'F');
+  doc.setFont(undefined,'bold'); doc.setFontSize(9); doc.setTextColor(55,65,81);
+  doc.text('La Direction', W-margin-30, sigY+7, {align:'center'});
+  doc.setFont(undefined,'normal'); doc.setFontSize(8);
+  doc.text('2i Immobilier', W-margin-30, sigY+13, {align:'center'});
+  doc.text('Mme Diaby Djeneba', W-margin-30, sigY+19, {align:'center'});
+  doc.text('M. Musandji N. Roger', W-margin-30, sigY+24, {align:'center'});
+  // Ref
+  const ref = slug => String(new Date().getFullYear())+String(new Date().getMonth()+1).padStart(2,'0');
+  doc.setFontSize(8); doc.setTextColor(156,163,175);
+  doc.text(moisLabel+' | Ref. '+ref()+l.appt, W-margin, sigY+28, {align:'right'});
+
+  doc.save('Quittance_'+l.nom+'_'+(l.moisCouverts[0]||slugDuMois())+'.pdf');
 }
 
-async function genererQuittanceProprio(btn, idx) {
-  const payes = locataires.filter(l => l.paye);
-  const l = payes[idx];
-  if (!l) { alert('Locataire introuvable'); return; }
-
-  btn.textContent = '...'; btn.disabled = true;
-
-  // Charger jsPDF si pas encore chargé
-  if (!window.jspdf) {
-    await new Promise((res, rej) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
-    });
-  }
-
-  try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-
-    const today = new Date();
-    const freq = l.frequence || 'Mensuel';
-    const nomComplet = l.nom + (l.prenom ? ' ' + l.prenom : '');
-
-    // Mois couverts : depuis multi-mois si dispo, sinon depuis fréquence
-    let moisList = []; // liste de {m: 0-11, y: 2026}
-    if (l.moisCouverts && l.moisCouverts.length > 0) {
-      // Paiement multi-mois manuel
-      l.moisCouverts.forEach(slug => {
-        const yy = parseInt(slug.substring(0,4));
-        const mm = parseInt(slug.substring(4,6)) - 1;
-        moisList.push({m: mm, y: yy});
-      });
-    } else {
-      // Paiement normal : fréquence
-      const nbMoisFreq = freq === 'Trimestriel' ? 3 : freq === 'Semestriel' ? 6 : 1;
-      const mBase = today.getMonth();
-      const yBase = today.getFullYear();
-      for (let i = 0; i < nbMoisFreq; i++) {
-        const mIdx = (mBase + i) % 12;
-        const yIdx = yBase + Math.floor((mBase + i) / 12);
-        moisList.push({m: mIdx, y: yIdx});
-      }
-    }
-    const nbMois = moisList.length;
-    const montantTotal = l.montantPaye || (l.loyer * nbMois);
-    const m = moisList[0].m;
-    const y = moisList[0].y;
-    const appt = l.appt || '';
-    const zone = (l.zone || '').replace('Cote ','').replace('Côté ','');
-    const modePaie = l.modePaie || 'Depot bancaire';
-    const datePaie = fmtDate(l.datePaie) || today.toLocaleDateString('fr-FR');
-    const typeLabel = nbMois === 1 ? '' : nbMois === 3 && freq === 'Trimestriel' ? 'Trimestrielle' : nbMois === 6 && freq === 'Semestriel' ? 'Semestrielle' : nbMois + ' mois';
-
-    // Dates
-    const dDebut = '01/' + String(m+1).padStart(2,'0') + '/' + y;
-    const lastMois = moisList[moisList.length - 1];
-    const fIdx = lastMois.m;
-    const fAnn = lastMois.y;
-    const fJour = new Date(fAnn, fIdx+1, 0).getDate();
-    const dFin = fJour + '/' + String(fIdx+1).padStart(2,'0') + '/' + fAnn;
-    const ref = String(y) + String(m+1).padStart(2,'0') + appt;
-    const fmt = n => Math.round(n||0).toLocaleString('fr-FR') + ' Fr CFA';
-
-    const W = 210, margin = 15;
-    let y0 = 0;
-
-    // Header bleu
-    doc.setFillColor(32, 72, 245);
-    doc.rect(0, 0, W, 28, 'F');
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(16); doc.setFont('helvetica','bold');
-    doc.text('2i Immobilier', margin, 11);
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.text('Palmeraies, Cocody / Abidjan, Cote d\'Ivoire', margin, 17);
-    doc.setFontSize(14); doc.setFont('helvetica','bold');
-    doc.text('QUITTANCE DE LOYER', W - margin, 11, {align:'right'});
-    if (typeLabel) {
-      doc.setFillColor(255,255,255);
-      doc.roundedRect(W-margin-35, 13, 35, 6, 2, 2, 'F');
-      doc.setTextColor(32,72,245); doc.setFontSize(7); doc.setFont('helvetica','bold');
-      doc.text(typeLabel, W-margin-17.5, 17.3, {align:'center'});
-    }
-    doc.setTextColor(200,210,255); doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.text('Periode du ' + dDebut + ' au ' + dFin, W-margin, 22, {align:'right'});
-    doc.text('Ref.: ' + ref, W-margin, 26, {align:'right'});
-
-    y0 = 36;
-
-    // Bailleur / Locataire
-    doc.setFillColor(248,250,255);
-    doc.rect(margin, y0, 82, 28, 'F');
-    doc.setFillColor(248,250,255);
-    doc.rect(W/2+2, y0, 82, 28, 'F');
-    doc.setDrawColor(32,72,245);
-    doc.setLineWidth(0.8);
-    doc.line(margin, y0, margin, y0+28);
-    doc.setDrawColor(130,32,245);
-    doc.line(W/2+2, y0, W/2+2, y0+28);
-    doc.setLineWidth(0.2);
-
-    doc.setTextColor(148,163,184); doc.setFontSize(7); doc.setFont('helvetica','bold');
-    doc.text('BAILLEUR', margin+4, y0+6);
-    doc.text('LOCATAIRE', W/2+6, y0+6);
-    doc.setTextColor(15,23,42); doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('Madame Diaby Djeneba', margin+4, y0+12);
-    doc.text(nomComplet, W/2+6, y0+12);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(71,85,105);
-    doc.text('Immeuble 2i - Palmeraies, Cocody', margin+4, y0+18);
-    doc.text('Abidjan, Cote d\'Ivoire', margin+4, y0+23);
-    doc.text('Appt ' + appt + (zone ? ' - ' + zone : ''), W/2+6, y0+18);
-    doc.text('Immeuble 2i, Palmeraies, Cocody', W/2+6, y0+23);
-
-    y0 += 34;
-
-    // Declaration
-    doc.setFillColor(238,242,255);
-    doc.rect(margin, y0, W-2*margin, 20, 'F');
-    doc.setTextColor(60,32,245); doc.setFontSize(8.5); doc.setFont('helvetica','normal');
-    const decl = 'Je soussignee, Madame Diaby Djeneba, declare avoir recu de ' + nomComplet +
-      ', locataire de l\'appartement ' + appt + (zone?' ('+zone+')':'') +
-      ', la somme de ' + fmt(montantTotal) +
-      (nbMois>1 ? ', couvrant ' + nbMois + ' mois (' + typeLabel.toLowerCase() + '),' : '') +
-      ' pour la periode du ' + dDebut + ' au ' + dFin + '.';
-    const declLines = doc.splitTextToSize(decl, W-2*margin-8);
-    doc.text(declLines, margin+4, y0+7);
-
-    y0 += 26;
-
-    // Tableau
-    const colW = nbMois > 1 ? [75, 55, 45] : [130, 45];
-    const headers = nbMois > 1 ? ['Designation', 'Periode', 'Montant'] : ['Designation', 'Montant'];
-
-    // Header tableau
-    doc.setFillColor(32,72,245);
-    doc.rect(margin, y0, W-2*margin, 8, 'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold');
-    let x0 = margin + 3;
-    headers.forEach((h, i) => {
-      const align = i === headers.length-1 ? 'right' : 'left';
-      const xh = i === headers.length-1 ? margin + W - 2*margin - 3 : x0;
-      doc.text(h, xh, y0+5.5, {align});
-      x0 += colW[i];
-    });
-
-    y0 += 8;
-    const loyerM = nbMois > 1 ? Math.round(montantTotal/nbMois) : montantTotal;
-
-    for (let mx = 0; mx < nbMois; mx++) {
-      const midx = moisList[mx].m;
-      const yy = moisList[mx].y;
-      const ldm = new Date(yy, midx+1, 0).getDate();
-      const dm = '01/' + String(midx+1).padStart(2,'0') + '/' + yy;
-      const fm2 = ldm + '/' + String(midx+1).padStart(2,'0') + '/' + yy;
-
-      doc.setFillColor(mx%2===0 ? 248 : 255, mx%2===0 ? 250 : 255, 255);
-      doc.rect(margin, y0, W-2*margin, 7, 'F');
-      doc.setTextColor(15,23,42); doc.setFontSize(8.5); doc.setFont('helvetica','normal');
-      doc.text('Loyer ' + MOIS[midx] + ' ' + yy, margin+3, y0+4.8);
-      if (nbMois > 1) doc.text(dm + ' au ' + fm2, margin+colW[0]+3, y0+4.8);
-      doc.text(fmt(loyerM), W-margin-3, y0+4.8, {align:'right'});
-      doc.setDrawColor(226,232,240); doc.setLineWidth(0.2);
-      doc.line(margin, y0+7, W-margin, y0+7);
-      y0 += 7;
-    }
-
-    // Charges
-    doc.setFillColor(255,255,255);
-    doc.rect(margin, y0, W-2*margin, 7, 'F');
-    doc.setTextColor(71,85,105); doc.setFontSize(8.5);
-    doc.text('Charges locatives', margin+3, y0+4.8);
-    doc.text('0 Fr CFA', W-margin-3, y0+4.8, {align:'right'});
-    doc.line(margin, y0+7, W-margin, y0+7);
-    y0 += 7;
-
-    // Total
-    doc.setFillColor(32,72,245);
-    doc.rect(margin, y0, W-2*margin, 8, 'F');
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
-    doc.text(nbMois>1?'Total recu ('+nbMois+' mois)':'Total recu', margin+3, y0+5.5);
-    doc.text(fmt(montantTotal), W-margin-3, y0+5.5, {align:'right'});
-
-    y0 += 14;
-
-    // Mode et date
-    doc.setTextColor(71,85,105); doc.setFontSize(8.5); doc.setFont('helvetica','normal');
-    doc.text('Mode de paiement : ' + modePaie, margin, y0);
-    doc.text('Date d\'emission : ' + datePaie, margin, y0+6);
-
-    y0 += 14;
-
-    // Mention légale
-    doc.setDrawColor(226,232,240); doc.setLineWidth(0.3);
-    doc.rect(margin, y0, W-2*margin, 10);
-    doc.setTextColor(148,163,184); doc.setFontSize(7);
-    doc.text('Quittance etablie conformement a la loi ivoirienne n77-1444 du 14 decembre 1977.', margin+3, y0+4);
-    doc.text('Valable uniquement apres encaissement effectif du loyer.', margin+3, y0+8);
-
-    y0 += 16;
-
-    // Footer
-    doc.setDrawColor(238,242,255); doc.setLineWidth(0.5);
-    doc.line(margin, y0, W-margin, y0);
-    doc.setTextColor(188,179,245); doc.setFontSize(7.5);
-    doc.text('Immeuble 2i - Palmeraies, Cocody / Abidjan', margin, y0+5);
-    const pLabel = nbMois===1 ? MOIS[m]+' '+y : MOIS[m]+' a '+MOIS[fIdx]+' '+fAnn;
-    doc.text(pLabel + ' | Ref. ' + ref, W-margin, y0+5, {align:'right'});
-
-    // Télécharger
-    const tag = freq !== 'Mensuel' ? freq.substring(0,4)+'_' : '';
-    doc.save('Quittance_' + tag + nomComplet.replace(/\s+/g,'_') + '_' + String(m+1).padStart(2,'0') + '_' + y + '.pdf');
-
-    btn.textContent = '✓ OK';
-    setTimeout(() => { btn.textContent = '📄 PDF'; btn.disabled = false; }, 2000);
-
-  } catch(e) {
-    alert('Erreur : ' + e.message);
-    btn.textContent = '📄 PDF'; btn.disabled = false;
-  }
-}
-
-// Télécharger la quittance comme fichier HTML (s'ouvre comme page web avec impression)
-function telechargerQuittanceHTML() {
-  if (!window._quittanceHTML) return;
-  const blob = new Blob([window._quittanceHTML], {type: 'text/html;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'Quittance_' + (window._quittanceNom||'locataire') + '.html';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-// FINANCES
-function chargerFinances() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'finances','navProprio');
-  const enc=locataires.filter(l=>l.paye).reduce((s,l)=>s+l.loyer,0);
-  const M=periodeF==='mensuel', k=M?1:12;
-  const L=LOYER_TH*k, C=CHARGES*k, P=Math.round(LOYER_TH*.05)*k, N=L-C-P;
-  document.getElementById('proprio-content').innerHTML=`<div style="padding:14px;">
-    <div class="tab-toggle">
-      <button class="${M?'active':''}" onclick="periodeF='mensuel';chargerFinances()">Mensuel</button>
-      <button class="${!M?'active':''}" onclick="periodeF='annuel';chargerFinances()">Annuel</button>
-    </div>
-    <div class="metrics">
-      <div class="metric blue"><div class="metric-label">Loyers théoriques</div><div class="metric-val">${fmt(L)}</div><div class="metric-sub">Fr CFA</div></div>
-      <div class="metric"><div class="metric-label">Encaissé</div><div class="metric-val green">${fmt(enc)}</div><div class="metric-sub">Fr CFA</div></div>
-    </div>
-    <div class="card"><div class="card-title">Compte de résultat</div>
-      <div class="row"><span class="row-label">Loyers théoriques</span><span class="row-val pos">+ ${fmt(L)} Fr</span></div>
-      <div class="row"><span class="row-label">Salaire gardien</span><span class="row-val neg">- ${fmt(90000*k)} Fr</span></div>
-      <div class="row"><span class="row-label">Eau + électricité</span><span class="row-val neg">- ${fmt(30000*k)} Fr</span></div>
-      <div class="row"><span class="row-label">Taxe foncière</span><span class="row-val neg">- ${fmt(125000*k)} Fr</span></div>
-      <div class="row"><span class="row-label">Assurance immeuble</span><span class="row-val neg">- ${fmt(125000*k)} Fr</span></div>
-      <div class="row"><span class="row-label">Provision travaux (5%)</span><span class="row-val neg">- ${fmt(P)} Fr</span></div>
-      <div class="row total"><span>Revenu net estimé</span><span class="row-val pos">${fmt(N)} Fr</span></div>
-    </div>
-    <div class="alert-amber">Assurance immeuble : à souscrire en urgence — 1 500 000 Fr CFA de risque non couvert.</div>
-    <button class="logout" onclick="seDeconnecter()">Se déconnecter</button>
-  </div>`;
-}
-
-// TRÉSORERIE
+// ═══════════════ TRÉSORERIE ════════════════
 async function chargerTresorerie() {
-  document.getElementById('proprio-nav').innerHTML = renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'tresorerie','navProprio');
-  document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
-
   try {
-    // Toutes les données viennent de WebApp (Recettes + Caisses), filtrées sur le mois courant
-    const r = await get('getCaisses');
-    const d = r.data || { caisse1:{solde:0,encaissementsMois:0,loyers:[],operations:[]}, caisse2:{solde:0,encaissementsMois:0,loyers:[],operations:[]} };
+    const r  = await get('getCaisses');
+    const d  = r.data || { caisse1:{solde:0,encaissementsMois:0,loyers:[],operations:[]}, caisse2:{solde:0,encaissementsMois:0,loyers:[],operations:[]} };
     const c1 = d.caisse1, c2 = d.caisse2;
-    const loyersC1 = c1.loyers || [];
-    const loyersC2 = c2.loyers || [];
-    let encaisC1 = c1.encaissementsMois || 0;
-    let encaisC2 = c2.encaissementsMois || 0;
+    const encC1 = c1.encaissementsMois||0;
+    const encC2 = c2.encaissementsMois||0;
+    const depC1 = (c1.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
+    const depC2 = (c2.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
+    const totalEnc = encC1+encC2;
+    const totalDep = depC1+depC2;
+    const solde1   = c1.solde||0;
+    const solde2   = c2.solde||0;
 
-    let h = '<div style="padding:14px;">';
-
-    // Soldes réels = solde cumulatif de la caisse (toutes opérations confondues)
-    // + loyers du mois pas encore enregistrés en caisse (à déposer)
-    const depC1mois = (c1.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
-    const entC1mois = (c1.operations||[]).reduce((s,o)=>s+(o.entree||0),0);
-    const depC2mois = (c2.operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
-    const entC2mois = (c2.operations||[]).reduce((s,o)=>s+(o.entree||0),0);
-    // Solde caisse = solde cumulatif enregistré dans Caisse1/Caisse2
-    const soldeReel1 = (c1.solde||0) + encaisC1;
-    const soldeReel2 = (c2.solde||0) + encaisC2;
-    const soldeTotal = soldeReel1 + soldeReel2;
-
-    h += '<div class="metrics">';
-    h += `<div class="metric" style="border-left:4px solid #16A34A;">
-      <div class="metric-label">Caisse 1 — Mobile Money/Espèces</div>
-      <div class="metric-val ${soldeReel1>=0?'green':'red'}">${fmt(soldeReel1)}</div>
-      <div class="metric-sub">Fr CFA · Maman Diaby</div>
-    </div>`;
-    h += `<div class="metric" style="border-left:4px solid var(--blue);">
-      <div class="metric-label">Caisse 2 — Banque</div>
-      <div class="metric-val ${soldeReel2>=0?'green':'red'}">${fmt(soldeReel2)}</div>
-      <div class="metric-sub">Fr CFA</div>
-    </div>`;
-    h += `<div class="metric full" style="border-left:4px solid var(--violet);">
-      <div class="metric-label">Trésorerie totale</div>
-      <div class="metric-val ${soldeTotal>=0?'green':'red'}">${fmt(soldeTotal)}</div>
-      <div class="metric-sub">Fr CFA</div>
-    </div>`;
-    if (encaisC1 > 0 || encaisC2 > 0) {
-      h += `<div class="metric" style="border-left:4px solid #16A34A;">
-        <div class="metric-label">Loyers encaissés Caisse 1</div>
-        <div class="metric-val green">${fmt(encaisC1)}</div>
-        <div class="metric-sub">${loyersC1.length} locataire(s)</div>
-      </div>`;
-      h += `<div class="metric" style="border-left:4px solid var(--blue);">
-        <div class="metric-label">Loyers encaissés Caisse 2</div>
-        <div class="metric-val green">${fmt(encaisC2)}</div>
-        <div class="metric-sub">${loyersC2.length} locataire(s)</div>
-      </div>`;
-    }
-    h += '</div>';
-
-    // Actions
-    h += `<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-      <button class="btn-blue" onclick="openModalDepense(1)">+ Dépense Caisse 1</button>
-      <button class="btn-blue" onclick="openModalDepense(2)">+ Dépense Banque</button>
-      <button class="btn-violet" onclick="openModalTransfert()">↗ Transfert C1→Banque</button>
-    </div>`;
+    let h = `<div style="padding:14px;">
+      <div class="card-grid">
+        <div class="card" style="border-left:4px solid var(--green);">
+          <div class="stat-label">Caisse 1 — Mobile Money/Espèces</div>
+          <div class="stat-val" style="color:${solde1>=0?'var(--green)':'var(--red)'};">${fmt(solde1)}</div>
+          <div class="stat-sub">Fr CFA · Maman Diaby</div>
+        </div>
+        <div class="card" style="border-left:4px solid var(--blue);">
+          <div class="stat-label">Caisse 2 — Banque</div>
+          <div class="stat-val" style="color:${solde2>=0?'var(--green)':'var(--red)'};">${fmt(solde2)}</div>
+          <div class="stat-sub">Fr CFA</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Trésorerie totale</div>
+        <div class="stat-val" style="color:var(--green);">${fmt(solde1+solde2)}</div>
+        <div class="stat-sub">Fr CFA</div>
+      </div>
+      <div class="card-grid">
+        <div class="card" style="background:var(--green-light);">
+          <div class="stat-label">Encaissés Caisse 1</div>
+          <div style="font-size:18px;font-weight:700;color:var(--green);">${fmt(encC1)}</div>
+          <div class="stat-sub">${(c1.loyers||[]).length} locataire(s)</div>
+        </div>
+        <div class="card" style="background:var(--blue-light);">
+          <div class="stat-label">Encaissés Caisse 2</div>
+          <div style="font-size:18px;font-weight:700;color:var(--blue);">${fmt(encC2)}</div>
+          <div class="stat-sub">${(c2.loyers||[]).length} locataire(s)</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="btn-primary" style="flex:1;" onclick="ouvrirDepense(1)">+ Dépense Caisse 1</button>
+        <button class="btn-primary" style="flex:1;background:var(--blue-dark);" onclick="ouvrirDepense(2)">+ Dépense Banque</button>
+      </div>
+      <button class="btn-gray" style="width:100%;margin-bottom:16px;" onclick="ouvrirTransfert()">↗ Transfert C1 → Banque</button>`;
 
     // Loyers Caisse 1
-    h += '<div class="stitle">Caisse 1 — Loyers encaissés ce cycle</div><div class="card">';
-    if (!loyersC1.length) {
-      h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucun loyer en Caisse 1</p>';
-    } else {
-      loyersC1.forEach(op => {
-        h += `<div class="row">
-          <div><div style="font-size:13px;font-weight:500;">${op.description}</div>
-          <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div></div>
-          <div style="font-size:13px;font-weight:600;color:var(--green);">+${fmt(op.entree)}</div>
-        </div>`;
+    if ((c1.loyers||[]).length) {
+      h += `<div class="trés-section">Caisse 1 — Loyers encaissés ce mois</div><div class="card">`;
+      c1.loyers.forEach(op => {
+        h += `<div class="op-row"><div><div class="op-label">${op.description}</div><div class="op-sub">${op.date} · ${op.categorie}</div></div><span class="op-val pos">+${fmt(op.entree)}</span></div>`;
       });
-      h += `<div class="row total"><span>Total encaissé Caisse 1</span><span class="row-val pos">+ ${fmt(encaisC1)} Fr</span></div>`;
+      h += `<div class="op-row"><div class="op-label" style="font-weight:700;">Total encaissé Caisse 1</div><span class="op-val pos" style="font-weight:700;">+ ${fmt(encC1)} Fr</span></div></div>`;
     }
-    h += '</div>';
 
     // Dépenses Caisse 1
-    h += '<div class="stitle" style="margin-top:14px;">Caisse 1 — Dépenses et opérations</div><div class="card">';
-    if (!c1.operations || !c1.operations.length) {
-      h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucune opération</p>';
-    } else {
-      const depC1 = c1.operations.reduce((s,o)=>s+(o.sortie||0),0);
+    if ((c1.operations||[]).length) {
+      h += `<div class="trés-section">Caisse 1 — Dépenses et opérations</div><div class="card">`;
       c1.operations.forEach(op => {
         const isE = op.entree > 0;
-        h += `<div class="row">
-          <div><div style="font-size:13px;font-weight:500;">${op.description}</div>
-          <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div></div>
-          <div style="text-align:right;">
-            <div style="font-size:13px;font-weight:600;color:${isE?'var(--green)':'var(--red)'};">${isE?'+':'-'}${fmt(isE?op.entree:op.sortie)}</div>
-            <div style="font-size:10px;color:var(--gray-400);">Solde: ${fmt(op.solde)}</div>
-          </div>
-        </div>`;
+        h += `<div class="op-row"><div><div class="op-label">${op.description}</div><div class="op-sub">${op.date} · ${op.categorie}</div></div>
+          <div style="text-align:right;"><span class="op-val ${isE?'pos':'neg'}">${isE?'+':'- '}${fmt(isE?op.entree:op.sortie)}</span><div class="op-sub">Solde: ${fmt(op.solde)}</div></div></div>`;
       });
-      h += `<div class="row total"><span>Total dépenses Caisse 1</span><span class="row-val neg">- ${fmt(depC1)} Fr</span></div>`;
+      h += `<div class="op-row"><div class="op-label" style="font-weight:700;">Total dépenses Caisse 1</div><span class="op-val neg" style="font-weight:700;">- ${fmt(depC1)} Fr</span></div></div>`;
     }
-    h += '</div>';
 
     // Loyers Caisse 2
-    h += '<div class="stitle" style="margin-top:14px;">Caisse 2 — Loyers encaissés ce cycle</div><div class="card">';
-    if (!loyersC2.length) {
-      h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucun loyer en Caisse 2</p>';
-    } else {
-      loyersC2.forEach(op => {
-        h += `<div class="row">
-          <div><div style="font-size:13px;font-weight:500;">${op.description}</div>
-          <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div></div>
-          <div style="font-size:13px;font-weight:600;color:var(--green);">+${fmt(op.entree)}</div>
-        </div>`;
+    if ((c2.loyers||[]).length) {
+      h += `<div class="trés-section">Caisse 2 — Loyers encaissés ce mois</div><div class="card">`;
+      c2.loyers.forEach(op => {
+        h += `<div class="op-row"><div><div class="op-label">${op.description}</div><div class="op-sub">${op.date} · ${op.categorie}</div></div><span class="op-val pos">+${fmt(op.entree)}</span></div>`;
       });
-      h += `<div class="row total"><span>Total encaissé Caisse 2</span><span class="row-val pos">+ ${fmt(encaisC2)} Fr</span></div>`;
+      h += `<div class="op-row"><div class="op-label" style="font-weight:700;">Total encaissé Caisse 2</div><span class="op-val pos" style="font-weight:700;">+ ${fmt(encC2)} Fr</span></div></div>`;
     }
-    h += '</div>';
 
     // Dépenses Caisse 2
-    h += '<div class="stitle" style="margin-top:14px;">Caisse 2 — Banque — Dépenses et opérations</div><div class="card">';
-    if (!c2.operations || !c2.operations.length) {
-      h += '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:12px;">Aucune opération</p>';
-    } else {
-      const depC2 = c2.operations.reduce((s,o)=>s+(o.sortie||0),0);
+    if ((c2.operations||[]).length) {
+      h += `<div class="trés-section">Caisse 2 — Banque — Dépenses et opérations</div><div class="card">`;
       c2.operations.forEach(op => {
         const isE = op.entree > 0;
-        h += `<div class="row">
-          <div><div style="font-size:13px;font-weight:500;">${op.description}</div>
-          <div style="font-size:11px;color:var(--gray-400);">${op.date} · ${op.categorie}</div></div>
-          <div style="text-align:right;">
-            <div style="font-size:13px;font-weight:600;color:${isE?'var(--green)':'var(--red)'};">${isE?'+':'-'}${fmt(isE?op.entree:op.sortie)}</div>
-            <div style="font-size:10px;color:var(--gray-400);">Solde: ${fmt(op.solde)}</div>
-          </div>
-        </div>`;
+        h += `<div class="op-row"><div><div class="op-label">${op.description}</div><div class="op-sub">${op.date} · ${op.categorie}</div></div>
+          <div style="text-align:right;"><span class="op-val ${isE?'pos':'neg'}">${isE?'+':'- '}${fmt(isE?op.entree:op.sortie)}</span><div class="op-sub">Solde: ${fmt(op.solde)}</div></div></div>`;
       });
-      h += `<div class="row total"><span>Total dépenses Caisse 2</span><span class="row-val neg">- ${fmt(depC2)} Fr</span></div>`;
+      h += `<div class="op-row"><div class="op-label" style="font-weight:700;">Total dépenses Caisse 2</div><span class="op-val neg" style="font-weight:700;">- ${fmt(depC2)} Fr</span></div></div>`;
     }
-    h += '</div>';
 
-    // Récapitulatif global
-    const totalEncais = encaisC1 + encaisC2;
-    const totalDepenses = depC1mois + depC2mois;
-    const resultatNet = totalEncais - totalDepenses;
-    h += `<div class="card" style="margin-top:14px;background:var(--gray-100);">
-      <div class="card-title">Récapitulatif du mois</div>
-      <div class="row"><span class="row-label">Loyers encaissés Caisse 1</span><span class="row-val pos">+ ${fmt(encaisC1)} Fr</span></div>
-      <div class="row"><span class="row-label">Loyers encaissés Caisse 2</span><span class="row-val pos">+ ${fmt(encaisC2)} Fr</span></div>
-      <div class="row"><span class="row-label">Total loyers encaissés</span><span class="row-val pos" style="font-weight:700;">+ ${fmt(totalEncais)} Fr</span></div>
-      <div class="row"><span class="row-label">Dépenses Caisse 1</span><span class="row-val neg">- ${fmt(depC1mois)} Fr</span></div>
-      <div class="row"><span class="row-label">Dépenses Caisse 2</span><span class="row-val neg">- ${fmt(depC2mois)} Fr</span></div>
-      <div class="row"><span class="row-label">Total dépenses</span><span class="row-val neg" style="font-weight:700;">- ${fmt(totalDepenses)} Fr</span></div>
-      <div class="row total"><span>Résultat net du mois</span><span class="row-val ${resultatNet>=0?'pos':'neg'}">${fmt(resultatNet)} Fr</span></div>
-      <div class="row total"><span>Trésorerie totale</span><span class="row-val ${soldeTotal>=0?'pos':'neg'}">${fmt(soldeTotal)} Fr</span></div>
-    </div>`;
+    // Récapitulatif
+    const netMois = totalEnc - totalDep;
+    h += `<div class="trés-section">Récapitulatif du mois</div><div class="card">
+      <div class="fin-row"><span>Loyers encaissés Caisse 1</span><span class="op-val pos">+ ${fmt(encC1)} Fr</span></div>
+      <div class="fin-row"><span>Loyers encaissés Caisse 2</span><span class="op-val pos">+ ${fmt(encC2)} Fr</span></div>
+      <div class="fin-row"><span style="font-weight:600;">Total loyers encaissés</span><span class="op-val pos" style="font-weight:700;">+ ${fmt(totalEnc)} Fr</span></div>
+      <div class="fin-row"><span>Dépenses Caisse 1</span><span class="op-val neg">- ${fmt(depC1)} Fr</span></div>
+      <div class="fin-row"><span>Dépenses Caisse 2</span><span class="op-val neg">- ${fmt(depC2)} Fr</span></div>
+      <div class="fin-row"><span style="font-weight:600;">Total dépenses</span><span class="op-val neg" style="font-weight:700;">- ${fmt(totalDep)} Fr</span></div>
+      <div class="fin-row"><span style="font-weight:700;">Résultat net du mois</span><span style="font-weight:700;color:${netMois>=0?'var(--green)':'var(--red)'};">${netMois>=0?'+ ':'- '}${fmt(Math.abs(netMois))} Fr</span></div>
+      <div class="fin-row"><span>Trésorerie totale</span><span style="font-weight:700;color:var(--blue);">${fmt(solde1+solde2)} Fr</span></div>
+    </div></div>`;
 
-    h += '<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
     document.getElementById('proprio-content').innerHTML = h;
-
-  } catch(e) {
-    document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><p style="color:var(--red);">Erreur: ' + e.message + '</p></div>';
+  } catch(err) {
+    document.getElementById('proprio-content').innerHTML = `<div class="erreur">Erreur: ${err.message}</div>`;
   }
 }
 
-// Modals Trésorerie
-let _caisseActive = 1;
-
-function openModalDepense(caisse) {
-  _caisseActive = caisse;
-  document.getElementById('modal-depense-titre').textContent = 
-    caisse === 1 ? 'Dépense Caisse 1 (Mobile Money/Espèces)' : 'Dépense Caisse 2 (Banque)';
-  
-  const cats1 = ['Gardien','Eau/Electricite','Petits travaux','Fournitures','Transport','Depot bancaire','Autre'];
-  const cats2 = ['Taxe fonciere','Assurance','Gros travaux','Autre depense'];
-  const cats = caisse === 1 ? cats1 : cats2;
-  const sel = document.getElementById('depense-cat');
-  sel.innerHTML = cats.map(c => `<option>${c}</option>`).join('');
-  
-  document.getElementById('depense-desc').value = '';
-  document.getElementById('depense-montant').value = '';
-  document.getElementById('depense-obs').value = '';
+function ouvrirDepense(caisse) {
+  document.getElementById('dep-caisse').value = caisse;
+  document.getElementById('dep-titre').textContent = caisse===1 ? 'Dépense Caisse 1' : 'Dépense Banque';
   openModal('modal-depense');
 }
 
-async function sauvegarderDepense() {
-  const cat = document.getElementById('depense-cat').value;
-  const desc = document.getElementById('depense-desc').value || cat;
-  const montant = parseInt(document.getElementById('depense-montant').value)||0;
-  const obs = document.getElementById('depense-obs').value;
-  if (!montant) { alert('Veuillez saisir un montant.'); return; }
+async function validerDepense() {
+  const caisse  = parseInt(document.getElementById('dep-caisse').value);
+  const cat     = document.getElementById('dep-cat').value;
+  const desc    = document.getElementById('dep-desc').value;
+  const montant = parseInt(document.getElementById('dep-montant').value)||0;
+  const notes   = document.getElementById('dep-notes').value;
+  if (!montant) { alert('Montant requis.'); return; }
   closeModal('modal-depense');
-  await post({ action:'addDepense', caisse:_caisseActive, categorie:cat, description:desc, montant:String(montant), observations:obs });
+  await post({ action:'addDepense', caisse, categorie:cat, description:desc, montant, notes });
   chargerTresorerie();
 }
 
-function openModalTransfert() {
-  document.getElementById('transfert-montant').value = '';
-  document.getElementById('transfert-obs').value = '';
-  openModal('modal-transfert');
+function ouvrirTransfert() {
+  const m = prompt('Montant à transférer vers la banque (Fr CFA) :');
+  if (!m || isNaN(m)) return;
+  post({ action:'addTransfert', montant:parseInt(m), notes:'Transfert C1→Banque' }).then(()=>chargerTresorerie());
 }
 
-async function sauvegarderTransfert() {
-  const montant = parseInt(document.getElementById('transfert-montant').value)||0;
-  const obs = document.getElementById('transfert-obs').value;
-  if (!montant) { alert('Veuillez saisir un montant.'); return; }
-  closeModal('modal-transfert');
-  await post({ action:'addTransfert', montant:String(montant), observations:obs });
-  chargerTresorerie();
+// ═══════════════ ARCHIVES ════════════════
+async function chargerArchives() {
+  const r    = await get('getHistoriqueComplet');
+  const data = r.data || [];
+  const today= new Date();
+  const moisDispos = [];
+  for (let i=5;i>=0;i--) {
+    const d = new Date(today.getFullYear(), today.getMonth()-i, 1);
+    moisDispos.push({ slug: String(d.getFullYear())+String(d.getMonth()+1).padStart(2,'0'), label: MOIS[d.getMonth()].substring(0,3)+' '+d.getFullYear() });
+  }
+
+  let h = `<div style="padding:14px;">
+    <div class="card">
+      <div class="stat-label" style="margin-bottom:8px;">Historique des paiements</div>
+      <select class="mode-select" id="sel-mois" onchange="filtrerArchive()" style="width:100%;border-radius:10px;padding:8px;">`;
+  moisDispos.forEach(m => { h += `<option value="${m.slug}">${slugVersLabel(m.slug)}</option>`; });
+  h += `</select></div>
+    <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;padding:8px 0 6px;">Régularité — 6 derniers mois</div>
+    <div class="card" style="overflow-x:auto;">
+      <table class="arch-table">
+        <tr><th style="text-align:left;">Locataire</th>`;
+  moisDispos.forEach(m => { h += `<th>${m.label}</th>`; });
+  h += `<th>Score</th></tr>`;
+
+  data.forEach(loc => {
+    const nb   = loc.moisPaies.length;
+    const score= Math.round(nb/6*100);
+    h += `<tr><td>${loc.nom}<br><span style="font-size:10px;color:var(--gray-500);">Appt ${loc.appt}</span></td>`;
+    moisDispos.forEach(m => {
+      const ok = loc.moisPaies.indexOf(m.slug) !== -1;
+      h += `<td>${ok ? '✅' : '❌'}</td>`;
+    });
+    h += `<td style="font-weight:700;color:${score>=80?'var(--green)':score>=50?'var(--amber)':'var(--red)'};">${score}%</td></tr>`;
+  });
+  h += `</table></div></div>`;
+  document.getElementById('proprio-content').innerHTML = h;
 }
 
-// MESSAGES PROPRIÉTAIRE
+// ═══════════════ FINANCES ════════════════
+async function chargerFinances() {
+  const r  = await get('getCaisses');
+  const d  = r.data || {};
+  const encC1 = (d.caisse1||{}).encaissementsMois||0;
+  const encC2 = (d.caisse2||{}).encaissementsMois||0;
+  const totalEnc = encC1+encC2;
+  const loyerTheo = locataires.reduce((s,l)=>s+l.loyer,0);
+  const loyerTheoAn = loyerTheo * 12;
+  const depC1 = ((d.caisse1||{}).operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
+  const depC2 = ((d.caisse2||{}).operations||[]).reduce((s,o)=>s+(o.sortie||0),0);
+  const totalDep = depC1+depC2;
+
+  let h = `<div style="padding:14px;">
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button class="btn-blue" onclick="chargerFinances()" style="flex:1;">Mensuel</button>
+    </div>
+    <div class="card-grid">
+      <div class="stat-card"><div class="stat-label">Loyers théoriques</div><div class="stat-val">${fmt(loyerTheo)}</div><div class="stat-sub">Fr CFA / mois</div></div>
+      <div class="stat-card light"><div class="stat-label" style="color:var(--gray-500);">Encaissé</div><div class="stat-val" style="color:var(--green);">${fmt(totalEnc)}</div><div class="stat-sub" style="color:var(--gray-500);">Fr CFA</div></div>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;margin-bottom:12px;">Compte de résultat</div>
+      <div class="fin-row"><span>Loyers encaissés</span><span style="color:var(--green);font-weight:600;">+ ${fmt(totalEnc)} Fr</span></div>
+      <div class="fin-row"><span>Salaire gardien (estimé)</span><span style="color:var(--red);">- ${fmt(90000)} Fr</span></div>
+      <div class="fin-row"><span>Eau + électricité (estimé)</span><span style="color:var(--red);">- ${fmt(30000)} Fr</span></div>
+      <div class="fin-row"><span>Autres dépenses du mois</span><span style="color:var(--red);">- ${fmt(Math.max(0,totalDep-120000))} Fr</span></div>
+      <div class="fin-row"><span>Provision travaux (5%)</span><span style="color:var(--red);">- ${fmt(Math.round(totalEnc*0.05))} Fr</span></div>
+      <div class="fin-row" style="margin-top:8px;padding-top:8px;border-top:2px solid var(--gray-200);"><span style="font-weight:700;">Revenu net estimé</span><span style="font-weight:700;color:${totalEnc-totalDep>=0?'var(--green)':'var(--red)'};">+ ${fmt(Math.max(0,totalEnc-totalDep-Math.round(totalEnc*0.05)))} Fr</span></div>
+    </div>
+    ${totalEnc < loyerTheo * 0.9 ? `<div class="card" style="background:var(--amber-light);border-left:4px solid var(--amber);">
+      <div style="font-size:13px;color:var(--amber);font-weight:600;">⚠ Recouvrement insuffisant</div>
+      <div style="font-size:12px;color:var(--amber);margin-top:4px;">${fmt(loyerTheo-totalEnc)} Fr non encaissés ce mois.</div>
+    </div>`:''}
+  </div>`;
+  document.getElementById('proprio-content').innerHTML = h;
+}
+
+// ═══════════════ MESSAGES ════════════════
 async function chargerMessages() {
-  const NAV = renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'messages','navProprio');
-  document.getElementById('proprio-nav').innerHTML = NAV;
-  document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
-
-  try {
-    const r = await get('getMessages');
-    _messages = r.messages || [];
-    _nonLusProps = _messages.filter(m => m.expediteur !== '2i Immobilier' && m.expediteur !== 'Propriétaire' && m.lu === 'Non').length;
-
-    // Marquer comme lus les réponses des locataires
-    const nonLusIds = _messages
-      .filter(m => m.expediteur !== '2i Immobilier' && m.expediteur !== 'Propriétaire' && m.lu === 'Non')
-      .map(m => m.id);
-    if (nonLusIds.length) await post({action:'marquerLu', ids: nonLusIds});
-
-    // Générer les 6 derniers mois pour le menu déroulant
-    const moisOptions = [];
-    const moisNoms = ['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
-    const today = new Date();
-    for (let i = 0; i < 6; i++) {
-      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const val = String(d.getFullYear()) + String(d.getMonth()+1).padStart(2,'0');
-      const lbl = moisNoms[d.getMonth()] + ' ' + d.getFullYear();
-      moisOptions.push({val, lbl});
-    }
-
-    // Réponses des locataires uniquement
-    const reponses = _messages.filter(m => m.expediteur !== '2i Immobilier' && m.expediteur !== 'Propriétaire');
-
-    let h = '<div style="padding:14px;">';
-
-    // SECTION RELANCES
-    h += '<div class="card" style="margin-bottom:14px;">';
-    h += '<div class="card-title">Lettres de relance</div>';
-    h += '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
-    h += '<select id="select-mois-relance" class="mode-select" style="font-size:13px;padding:9px 12px;">';
-    moisOptions.forEach(m => {
-      h += '<option value="' + m.val + '">' + m.lbl + '</option>';
+  const r = await get('getMessages', { type:'', appt:'' });
+  const msgs = r.data || [];
+  let h = `<div style="padding:14px;">`;
+  if (!msgs.length) {
+    h += `<div class="card" style="text-align:center;color:var(--gray-400);padding:40px;">Aucun message</div>`;
+  } else {
+    msgs.forEach(m => {
+      h += `<div class="card" style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:600;">${m.expediteur}</span>
+          <span style="font-size:11px;color:var(--gray-500);">${m.date}</span>
+        </div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${m.objet}</div>
+        <div style="font-size:13px;color:var(--gray-700);">${m.message}</div>
+      </div>`;
     });
-    h += '</select>';
-    h += '<button class="btn-primary" style="padding:9px 18px;" onclick="genererRelancesMois()">📄 Générer les relances</button>';
-    h += '</div>';
-    h += '<p style="font-size:12px;color:var(--gray-400);margin-top:8px;">Sélectionne le mois puis génère un PDF par locataire impayé.</p>';
-    h += '</div>';
-
-    // SECTION RÉPONSES LOCATAIRES
-    h += '<div class="stitle">Réponses des locataires</div>';
-    if (!reponses.length) {
-      h += '<div class="card"><p style="font-size:13px;color:var(--gray-400);text-align:center;padding:16px;">Aucune réponse reçue.</p></div>';
-    } else {
-      h += '<div class="card">';
-      reponses.forEach(m => {
-        const nonLu = m.lu === 'Non';
-        h += '<div style="padding:10px 0;border-bottom:1px solid var(--gray-100);">';
-        h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
-        h += '<span style="font-size:13px;font-weight:600;color:var(--violet);">← ' + m.expediteur + ' (Appt ' + m.appt + ')</span>';
-        h += (nonLu ? '<span class="pill pill-red">Non lu</span>' : '<span class="pill pill-green">Lu</span>');
-        h += '</div>';
-        h += '<div style="font-size:11px;color:var(--gray-400);margin-bottom:4px;">' + m.date + '</div>';
-        h += '<div style="font-size:13px;font-weight:500;">' + m.objet + '</div>';
-        h += '<div style="font-size:12px;color:var(--gray-600);margin-top:4px;">' + m.message.substring(0,200) + (m.message.length>200?'...':'') + '</div>';
-        h += '<div style="margin-top:8px;">';
-        h += '<button class="btn-violet" style="font-size:11px;padding:5px 10px;" onclick="openModalRepondre(\'' + m.appt + '\',\'' + m.expediteur.replace(/'/g,'') + '\',\'' + m.objet.replace(/'/g,'') + '\')">↩ Répondre</button>';
-        h += '</div></div>';
-      });
-      h += '</div>';
-    }
-
-    h += '<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
-    document.getElementById('proprio-content').innerHTML = h;
-
-  } catch(e) {
-    document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><p style="color:var(--red);">Erreur: ' + e.message + '</p></div>';
   }
+  h += `</div>`;
+  document.getElementById('proprio-content').innerHTML = h;
 }
 
-async function genererRelancesMois() {
-  const moisSlug = document.getElementById('select-mois-relance').value;
-  const year = parseInt(moisSlug.substring(0,4));
-  const month = parseInt(moisSlug.substring(4,6)) - 1;
-  const moisNoms = ['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
-  const moisLabel = moisNoms[month] + ' ' + year;
+// ═══════════════ TRAVAUX ════════════════
+async function chargerTravaux() {
+  const r = await get('getTravaux');
+  travaux = r.data || [];
+  const enCours  = travaux.filter(t=>t.statut!=='Terminé');
+  const termines = travaux.filter(t=>t.statut==='Terminé');
 
-  // Locataires impayés
-  const impayés = locataires.filter(l => !l.paye);
-  if (!impayés.length) { alert('Tous les locataires ont payé pour ce mois.'); return; }
+  let h = `<div style="padding:14px;">
+    <button class="btn-primary" style="margin-bottom:14px;" onclick="ouvrirNouveauTravail()">+ Nouveau travail</button>`;
 
-  if (!window.jspdf) {
-    await new Promise((res, rej) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
-    });
+  if (enCours.length) {
+    h += `<div class="section-title">En cours & Devis (${enCours.length})</div>`;
+    enCours.forEach(t => h += travailCard(t));
   }
-
-  // Générer un PDF par locataire impayé
-  for (const l of impayés) {
-    const nomComplet = l.nom + (l.prenom ? ' ' + l.prenom : '');
-    const loyer = l.loyer;
-    const appt = l.appt;
-    const loyerFmt = Math.round(loyer).toLocaleString('fr-FR') + ' Fr CFA';
-    const today = new Date().toLocaleDateString('fr-FR');
-
-    const corps = 'Madame, Monsieur,\n\n' +
-      'Nous constatons a ce jour que le reglement de votre loyer du mois de ' + moisLabel +
-      ' n\'a pas ete recu par nos services.\n\n' +
-      'Il s\'eleve a la somme de ' + loyerFmt + ' et etait du le 1er ' + moisLabel + '.\n\n' +
-      'Si ce reglement a deja ete effectue de votre cote, nous vous prions de ne pas tenir ' +
-      'compte de ce courrier et de nous faire parvenir votre justificatif afin que nous ' +
-      'puissions mettre a jour votre dossier.\n\n' +
-      'Dans le cas contraire, nous vous demandons de bien vouloir proceder au reglement ' +
-      'dans les meilleurs delais, et au plus tard dans un delai de huit (8) jours a compter ' +
-      'de la reception de ce courrier.\n\n' +
-      'Pour tout reglement ou question : immeuble2i.abidjan@gmail.com\n\n' +
-      'Sans retour de votre part dans ce delai, nous nous verrons contraints d\'engager ' +
-      'les demarches prevues par le bail et la legislation en vigueur.\n\n' +
-      'Nous vous adressons nos cordiales salutations.\n\n' +
-      'La Direction\n2i Immobilier';
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const W = 210, mg = 20;
-    let y = 0;
-
-    // EN-TETE
-    doc.setFillColor(32,72,245); doc.rect(0,0,W,32,'F');
-    try { doc.addImage(LOGO_B64,'PNG',mg,4,22,12); } catch(e){}
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(15); doc.setFont('helvetica','bold');
-    doc.text('2i Immobilier', mg+25, 13);
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.text("Palmeraies, Cocody / Abidjan, Cote d'Ivoire", mg+25, 19);
-    doc.text('immeuble2i.abidjan@gmail.com', mg+25, 25);
-    y = 44;
-
-    // EXPEDITEUR
-    doc.setFillColor(248,250,255); doc.rect(mg,y,78,28,'F');
-    doc.setDrawColor(32,72,245); doc.setLineWidth(0.8);
-    doc.line(mg,y,mg,y+28);
-    doc.setTextColor(148,163,184); doc.setFontSize(7); doc.setFont('helvetica','bold');
-    doc.text('EXPEDITEUR', mg+3, y+6);
-    doc.setTextColor(15,23,42); doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('2i Immobilier', mg+3, y+13);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(71,85,105);
-    doc.text('Mme Diaby Djeneba & M. Musandji N. Roger', mg+3, y+19);
-    doc.text('Palmeraies, Cocody / Abidjan', mg+3, y+24);
-
-    // DESTINATAIRE
-    doc.setFillColor(248,250,255); doc.rect(W/2+4,y,78,28,'F');
-    doc.setDrawColor(130,32,245); doc.setLineWidth(0.8);
-    doc.line(W/2+4,y,W/2+4,y+28);
-    doc.setTextColor(148,163,184); doc.setFontSize(7); doc.setFont('helvetica','bold');
-    doc.text('DESTINATAIRE', W/2+7, y+6);
-    doc.setTextColor(15,23,42); doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text(nomComplet, W/2+7, y+13);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(71,85,105);
-    doc.text('Immeuble 2i - Appartement ' + String(appt), W/2+7, y+19);
-    doc.text('Palmeraies, Cocody / Abidjan', W/2+7, y+24);
-
-    y += 36;
-
-    // DATE
-    doc.setFontSize(9); doc.setTextColor(71,85,105); doc.setFont('helvetica','normal');
-    doc.text('Abidjan, le ' + today, W-mg, y, {align:'right'});
-    y += 8;
-
-    // LIGNE + OBJET
-    doc.setDrawColor(32,72,245); doc.setLineWidth(0.4);
-    doc.line(mg,y,W-mg,y); y += 7;
-    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(32,72,245);
-    const objet = 'Rappel - Loyer du mois de ' + moisLabel + ' impaye';
-    doc.text('Objet : ' + objet, mg, y); y += 10;
-    doc.setDrawColor(226,232,240); doc.setLineWidth(0.2);
-    doc.line(mg,y,W-mg,y); y += 8;
-
-    // CORPS
-    doc.setTextColor(15,23,42); doc.setFontSize(9.5); doc.setFont('helvetica','normal');
-    const lines = doc.splitTextToSize(corps, W-2*mg);
-    lines.forEach(line => {
-      if (y > 258) { doc.addPage(); y = 20; }
-      doc.text(line, mg, y); y += 5.5;
-    });
-
-    y += 10;
-    if (y > 240) { doc.addPage(); y = 20; }
-
-    // SIGNATURE
-    doc.setDrawColor(226,232,240); doc.setLineWidth(0.3);
-    doc.line(mg,y,W-mg,y); y += 8;
-    doc.setFillColor(248,250,255); doc.rect(mg,y,W-2*mg,20,'F');
-    doc.setDrawColor(32,72,245); doc.setLineWidth(0.8);
-    doc.line(mg,y,mg,y+20);
-    doc.setTextColor(32,72,245); doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('La Direction', mg+4, y+7);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(71,85,105);
-    doc.text('2i Immobilier', mg+4, y+13);
-    doc.text('immeuble2i.abidjan@gmail.com', mg+4, y+18);
-
-    // FOOTER
-    doc.setFontSize(7); doc.setTextColor(188,179,245);
-    doc.line(mg,284,W-mg,284);
-    doc.text("2i Immobilier - Palmeraies, Cocody / Abidjan", mg, 289);
-    doc.text(moisLabel, W-mg, 289, {align:'right'});
-
-    doc.save('Relance_' + nomComplet.replace(/\s+/g,'_') + '_' + moisLabel.replace(' ','_') + '.pdf');
-    await new Promise(r => setTimeout(r, 300));
+  if (termines.length) {
+    h += `<div class="section-title">Terminés (${termines.length})</div>`;
+    termines.forEach(t => h += travailCard(t));
   }
-
-  alert(impayés.length + ' lettre(s) generee(s) pour ' + moisLabel + '.');
-}
-
-// TRAVAUX
-function chargerTravaux() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'travaux','navProprio');
-  let h=`<div style="padding:14px;"><button class="btn-primary" style="margin-bottom:14px;" onclick="document.getElementById('modal-travail-titre').textContent='Nouveau travail';document.getElementById('t-row').value='';document.getElementById('t-desc').value='';document.getElementById('t-devis').value='';document.getElementById('t-devis-negocie').value='';document.getElementById('t-facture-finale').value='';document.getElementById('t-notes').value='';openModal('modal-travail')">+ Nouveau travail</button>`;
-  if(!travaux.length) { h+='<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:20px;">Aucun travail enregistré.</p>'; }
-  else {
-    const ec=travaux.filter(t=>t.statut!=='Terminé');
-    const te=travaux.filter(t=>t.statut==='Terminé');
-    if(ec.length) { h+=`<div class="stitle">En cours & devis (${ec.length})</div>`; ec.forEach(t=>{ h+=travailCard(t); }); }
-    if(te.length) { h+=`<div class="stitle" style="margin-top:14px;">Terminés (${te.length})</div>`; te.forEach(t=>{ h+=travailCard(t); }); }
-  }
-  h+=`<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>`;
-  document.getElementById('proprio-content').innerHTML=h;
+  if (!travaux.length) h += `<div class="card" style="text-align:center;color:var(--gray-400);padding:40px;">Aucun travail enregistré</div>`;
+  h += `</div>`;
+  document.getElementById('proprio-content').innerHTML = h;
 }
 
 function travailCard(t) {
-  const pc = t.statut==='Terminé' ? 'pill-green' : t.statut==='En cours' ? 'pill-amber' : t.statut==='Négociation' ? 'pill-violet' : 'pill-blue';
-  // Montant de référence : facture finale > devis négocié > devis initial
-  const montantRef = t.factureFinale || t.devisNegocie || t.devis || 0;
-  const montantLabel = t.factureFinale
-    ? fmt(t.factureFinale) + ' Fr (facture finale)'
-    : t.devisNegocie
-      ? fmt(t.devisNegocie) + ' Fr (négocié)'
-      : fmt(t.devis) + ' Fr (devis initial)';
-  const reduction = t.devis && t.devisNegocie ? Math.round((1 - t.devisNegocie/t.devis)*100) : 0;
+  const pc = t.statut==='Terminé'?'pill-green':t.statut==='En cours'?'pill-amber':t.statut==='Négociation'?'pill-violet':'pill-blue';
+  const montantRef = t.factureFinale||t.devisNegocie||t.devis||0;
+  const red = t.devis&&t.devisNegocie ? Math.round((1-t.devisNegocie/t.devis)*100) : 0;
+  const montantLabel = t.factureFinale ? fmt(t.factureFinale)+' Fr (facture)' : t.devisNegocie ? fmt(t.devisNegocie)+' Fr (négocié)' : fmt(t.devis)+' Fr (devis)';
+  const lastNote = t.notes ? t.notes.split('\n').pop() : '';
   return `<div class="travail-card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
       <div style="flex:1;">
         <div style="font-size:14px;font-weight:600;">${t.desc||'Sans description'}</div>
-        <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">Appt ${t.appt}${t.artisan?' · '+t.artisan:''}${t.categorie?' · '+t.categorie:''}</div>
+        <div style="font-size:11px;color:var(--gray-500);margin-top:2px;">${t.idAppt!=='BAT001'?'Appt '+t.idAppt+' · ':''}${t.categorie||''}${t.artisan?' · '+t.artisan:''}</div>
       </div>
       <span class="pill ${pc}">${t.statut}</span>
     </div>
-    <div style="font-size:13px;font-weight:600;color:var(--gray-900);margin-bottom:6px;">${montantLabel}${reduction>0?' <span style="color:var(--green);font-size:11px;">(-'+reduction+'%)</span>':''}</div>
-    ${t.notes ? `<div style="font-size:11px;color:var(--gray-400);background:var(--gray-50);padding:6px 8px;border-radius:6px;margin-bottom:8px;white-space:pre-wrap;">${t.notes.split('\n').pop()}</div>` : ''}
-    <div style="display:flex;gap:8px;padding-top:8px;border-top:1px solid var(--gray-100);flex-wrap:wrap;">
-      <button class="btn-violet" style="font-size:11px;padding:5px 10px;" onclick="ouvrirEditerTravail(${t.row})">✏️ Modifier</button>
-      ${t.statut!=='Terminé' ? `<button class="btn-success-action" style="font-size:11px;padding:5px 10px;" onclick="ouvrirTerminer(${t.row})">✓ Terminer</button>` : ''}
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px;">${montantLabel}${red>0?' <span style="color:var(--green);font-size:11px;">(-'+red+'%)</span>':''}</div>
+    ${lastNote?`<div style="font-size:11px;color:var(--gray-500);background:var(--gray-50);padding:6px 8px;border-radius:6px;margin-bottom:8px;">${lastNote}</div>`:''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-violet" onclick="ouvrirEditerTravail('${t.id}')">✏️ Modifier</button>
+      ${t.statut!=='Terminé'?`<button class="btn-green" onclick="terminerTravail('${t.id}')">✓ Terminer</button>`:''}
     </div>
   </div>`;
 }
 
-// ARTISANS
-function chargerArtisans() {
-  document.getElementById('proprio-nav').innerHTML=renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'artisans','navProprio');
-  let h=`<div style="padding:14px;"><button class="btn-primary" style="margin-bottom:14px;" onclick="openModal('modal-artisan')">+ Ajouter un artisan</button>`;
-  artisans.forEach(a=>{
-    const i2=a.nom.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-    h+=`<div class="artisan-card">
-      <div class="artisan-av">${i2}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;font-weight:600;">${a.nom}</div>
-        <div style="font-size:11px;color:var(--gray-400);">${a.specialite}</div>
-        <div style="font-size:12px;color:var(--blue);margin-top:2px;">${a.tel}</div>
-        <div style="font-size:13px;color:var(--amber);margin-top:2px;">${'★'.repeat(a.note||4)+'☆'.repeat(5-(a.note||4))}</div>
-      </div>
-    </div>`;
-  });
-  h+=`<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>`;
-  document.getElementById('proprio-content').innerHTML=h;
+function ouvrirNouveauTravail() {
+  document.getElementById('trav-titre').textContent = 'Nouveau travail';
+  document.getElementById('trav-id').value = '';
+  ['trav-desc','trav-artisan','trav-notes'].forEach(id=>{document.getElementById(id).value='';});
+  ['trav-devis','trav-devis-neg','trav-facture'].forEach(id=>{document.getElementById(id).value='';});
+  openModal('modal-travail');
 }
 
-function ouvrirEditerTravail(row) {
-  const t = travaux.find(x => x.row === row);
+function ouvrirEditerTravail(id) {
+  const t = travaux.find(x=>x.id===id);
   if (!t) return;
-  document.getElementById('modal-travail-titre').textContent = 'Modifier le travail';
-  document.getElementById('t-row').value = row;
-  document.getElementById('t-appt').value = t.appt || 'Espaces communs';
-  document.getElementById('t-cat').value = t.categorie || 'Autre';
-  document.getElementById('t-desc').value = t.desc || '';
-  document.getElementById('t-artisan').value = t.artisan || '';
-  document.getElementById('t-statut').value = t.statut || 'Devis';
-  document.getElementById('t-devis').value = t.devis || '';
-  document.getElementById('t-devis-negocie').value = t.devisNegocie || '';
-  document.getElementById('t-facture-finale').value = t.factureFinale || '';
-  document.getElementById('t-notes').value = '';
+  document.getElementById('trav-titre').textContent = 'Modifier le travail';
+  document.getElementById('trav-id').value = id;
+  document.getElementById('trav-desc').value = t.desc||'';
+  document.getElementById('trav-artisan').value = t.artisan||'';
+  document.getElementById('trav-statut').value = t.statut||'Devis';
+  document.getElementById('trav-devis').value = t.devis||'';
+  document.getElementById('trav-devis-neg').value = t.devisNegocie||'';
+  document.getElementById('trav-facture').value = t.factureFinale||'';
+  document.getElementById('trav-notes').value = '';
   openModal('modal-travail');
 }
 
 async function sauvegarderTravail() {
-  const row = parseInt(document.getElementById('t-row').value) || 0;
+  const id   = document.getElementById('trav-id').value;
   const data = {
-    appt:          document.getElementById('t-appt').value,
-    categorie:     document.getElementById('t-cat').value,
-    desc:          document.getElementById('t-desc').value,
-    statut:        document.getElementById('t-statut').value,
-    devis:         parseInt(document.getElementById('t-devis').value)||0,
-    devisNegocie:  parseInt(document.getElementById('t-devis-negocie').value)||0,
-    factureFinale: parseInt(document.getElementById('t-facture-finale').value)||0,
-    artisan:       document.getElementById('t-artisan').value,
-    notes:         document.getElementById('t-notes').value,
-    date: ''
+    idAppt:        document.getElementById('trav-appt').value,
+    categorie:     document.getElementById('trav-cat').value,
+    desc:          document.getElementById('trav-desc').value,
+    artisan:       document.getElementById('trav-artisan').value,
+    statut:        document.getElementById('trav-statut').value,
+    devis:         parseInt(document.getElementById('trav-devis').value)||0,
+    devisNegocie:  parseInt(document.getElementById('trav-devis-neg').value)||0,
+    factureFinale: parseInt(document.getElementById('trav-facture').value)||0,
+    notes:         document.getElementById('trav-notes').value,
   };
   closeModal('modal-travail');
-  if (row) {
-    await post({action:'updateTravail', row, data});
+  if (id) await post({ action:'updateTravail', idTrav:id, data:JSON.stringify(data) });
+  else    await post({ action:'addTravail', data:JSON.stringify(data) });
+  const r = await get('getTravaux'); travaux = r.data||[];
+  chargerTravaux();
+}
+
+async function terminerTravail(id) {
+  const facture = prompt('Montant facture finale (Fr CFA) :');
+  if (facture===null) return;
+  await post({ action:'updateTravail', idTrav:id, data:JSON.stringify({ statut:'Terminé', factureFinale:parseInt(facture)||0, dateFin:dateAujourdhui() }) });
+  const r = await get('getTravaux'); travaux = r.data||[];
+  chargerTravaux();
+}
+
+// ═══════════════ ARTISANS ════════════════
+async function chargerArtisans() {
+  const r = await get('getArtisans');
+  const arts = r.data || [];
+  let h = `<div style="padding:14px;">
+    <button class="btn-primary" style="margin-bottom:14px;" onclick="ajouterArtisan()">+ Ajouter artisan</button>`;
+  if (!arts.length) {
+    h += `<div class="card" style="text-align:center;color:var(--gray-400);padding:40px;">Aucun artisan enregistré</div>`;
   } else {
-    document.getElementById('modal-travail-titre').textContent = 'Nouveau travail';
-    document.getElementById('t-row').value = '';
-    await post({action:'addTravail', data});
+    arts.forEach(a => {
+      h += `<div class="card">
+        <div style="font-size:14px;font-weight:600;">${a.nom}</div>
+        <div style="font-size:12px;color:var(--gray-500);margin-top:4px;">${a.metier} · ${a.tel}</div>
+        ${a.note?`<div style="margin-top:6px;"><span class="pill pill-amber">★ ${a.note}/5</span></div>`:''}
+        ${a.obs?`<div style="font-size:12px;color:var(--gray-500);margin-top:6px;">${a.obs}</div>`:''}
+      </div>`;
+    });
   }
-  const r = await get('getTravaux'); travaux = r.data || [];
-  chargerTravaux();
+  h += `</div>`;
+  document.getElementById('proprio-content').innerHTML = h;
 }
 
-function ouvrirTerminer(row) { travailRow=row; document.getElementById('terminer-montant').value=''; openModal('modal-terminer'); }
-async function confirmerTerminer() {
-  const m=parseInt(document.getElementById('terminer-montant').value)||0;
-  closeModal('modal-terminer');
-  await post({action:'updateTravail',row:travailRow,data:{statut:'Terminé',reel:m,date:new Date().toLocaleDateString('fr-FR')}});
-  const r=await get('getTravaux'); travaux=r.data||[];
-  chargerTravaux();
-}
-
-async function sauvegarderArtisan() {
-  const data={nom:document.getElementById('a-nom').value,specialite:document.getElementById('a-spec').value,
-    tel:document.getElementById('a-tel').value,note:parseInt(document.getElementById('a-note').value)||4,
-    comment:document.getElementById('a-comment').value};
-  closeModal('modal-artisan');
-  await post({action:'addArtisan',data});
-  const r=await get('getArtisans'); artisans=r.data||[];
+async function ajouterArtisan() {
+  const nom    = prompt('Nom de l\'artisan :'); if (!nom) return;
+  const metier = prompt('Métier :'); if (!metier) return;
+  const tel    = prompt('Téléphone :') || '';
+  const note   = parseFloat(prompt('Note /5 (0 si inconnu) :')) || 0;
+  await post({ action:'addArtisan', data:JSON.stringify({ nom, metier, tel, note }) });
   chargerArtisans();
 }
 
-// ── LOCATAIRE ─────────────────────────────────────────────────
-async function ouvrirLocataire() {
-  document.getElementById('screen-login').style.display='none';
-  document.getElementById('screen-locataire').style.display='block';
-  document.getElementById('user-badge').textContent='Locataire';
-  document.getElementById('user-badge').style.display='inline';
-  document.getElementById('topbar-sub').textContent='Appt '+session.appt+' — Immeuble 2i';
-  chargerAccueilLoc();
-}
-
-function navLocataire(onglet) {
-  document.getElementById('locataire-nav').innerHTML=renderNav(['accueil','Accueil','quittances','Quittances','infos','Mon appart','contact','Contact'],onglet,'navLocataire');
-  if(onglet==='accueil') chargerAccueilLoc();
-  else if(onglet==='quittances') chargerQuittancesLoc();
-  else if(onglet==='infos') chargerInfosLoc();
-  else if(onglet==='contact') chargerContactLoc();
-}
-
-async function chargerAccueilLoc() {
-  document.getElementById('locataire-nav').innerHTML=renderNav(['accueil','Accueil','quittances','Quittances','infos','Mon appart','contact','Contact'],'accueil','navLocataire');
-  document.getElementById('locataire-content').innerHTML='<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
-  try {
-    const r=await fetch(WEBAPP+'?action=getHistorique&id='+encodeURIComponent(session.id));
-    const d=await r.json();
-    const der=d.paiements&&d.paiements.length>0?d.paiements[0]:null;
-    document.getElementById('locataire-content').innerHTML=`<div style="padding:14px;">
-      <div class="welcome">
-        <div class="welcome-nom">Bonjour ${session.nom?session.nom.split(' ')[0]:''} 👋</div>
-        <div class="welcome-sub">Appartement ${session.appt} — Immeuble 2i, Cocody</div>
-        <span class="welcome-badge">Locataire</span>
-      </div>
-      <div class="card">
-        <div class="card-title">Situation du mois</div>
-        <div class="row"><span class="row-label">Loyer mensuel</span><span class="row-val">${fmt(d.loyer||0)} Fr CFA</span></div>
-        ${der?`<div class="row"><span class="row-label">Dernier paiement</span><span class="row-val" style="color:var(--green)">${der.datePaie}</span></div>`:''}
-        <div class="row"><span class="row-label">Statut</span><span class="pill ${der?'pill-green':'pill-red'}">${der?'Payé':'En attente'}</span></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Actions</div>
-        <button class="btn-outline" onclick="navLocataire('quittances')">📄 &nbsp;Télécharger mes quittances</button>
-        <button class="btn-outline" onclick="openModal('modal-signal')">🔧 &nbsp;Signaler un problème</button>
-        <button class="btn-outline" onclick="navLocataire('contact')">📞 &nbsp;Contacter la direction</button>
-      </div>
-      <button class="logout" onclick="seDeconnecter()">Se déconnecter</button>
-    </div>`;
-  } catch(e) {
-    document.getElementById('locataire-content').innerHTML='<div style="padding:14px;"><p style="color:var(--red);">Erreur de chargement.</p></div>';
-  }
-}
-
-async function chargerQuittancesLoc() {
-  document.getElementById('locataire-nav').innerHTML=renderNav(['accueil','Accueil','quittances','Quittances','infos','Mon appart','contact','Contact'],'quittances','navLocataire');
-  document.getElementById('locataire-content').innerHTML='<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement de vos quittances...</div></div>';
-  try {
-    const r=await fetch(WEBAPP+'?action=getHistorique&id='+encodeURIComponent(session.id));
-    const d=await r.json();
-    let h='<div style="padding:14px;"><div class="card"><div class="card-title">Mes quittances — 6 derniers mois</div>';
-    if(!d.success||!d.paiements||!d.paiements.length) {
-      h+='<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:20px 0;">Aucune quittance disponible.</p>';
-    } else {
-      d.paiements.forEach(p=>{
-        h+=`<div class="quittance-row">
-          <div><div style="font-size:14px;font-weight:600;">${moisLbl(p.moisSlug)}</div>
-          <div style="font-size:12px;color:var(--gray-400);">${fmt(p.montant)} Fr CFA</div></div>
-          <button class="btn-blue" id="btn-${p.moisSlug}" onclick="dlQuittance('${p.moisSlug}','${p.datePaie}','${p.modePaie}',${p.montant})">
-            Télécharger
-          </button>
-        </div>`;
-      });
-    }
-    h+='</div><button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
-    document.getElementById('locataire-content').innerHTML=h;
-  } catch(e) { document.getElementById('locataire-content').innerHTML='<div style="padding:14px;"><p style="color:var(--red);">Erreur.</p></div>'; }
-}
-
-async function dlQuittance(moisSlug, datePaie, modePaie, montant) {
-  const btn=document.getElementById('btn-'+moisSlug);
-  btn.disabled=true; btn.innerHTML='<span class="spinner-inline"></span>';
-  try {
-    const r=await fetch(WEBAPP+'?action=genererQuittance&id='+encodeURIComponent(session.id)+'&moisSlug='+moisSlug+'&datePaie='+encodeURIComponent(datePaie)+'&modePaie='+encodeURIComponent(modePaie)+'&montant='+montant);
-    const d=await r.json();
-    if(d.success&&d.pdf) {
-      const bin=atob(d.pdf), bytes=new Uint8Array(bin.length);
-      for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-      const blob=new Blob([bytes],{type:'application/pdf'});
-      const url=URL.createObjectURL(blob), a=document.createElement('a');
-      a.href=url; a.download='Quittance_'+moisLbl(moisSlug).replace(' ','_')+'.pdf'; a.click();
-      URL.revokeObjectURL(url);
-    } else { alert('Erreur lors de la génération.'); }
-  } catch(e) { alert('Erreur de connexion.'); }
-  btn.disabled=false; btn.innerHTML='Télécharger';
-}
-
-function chargerInfosLoc() {
-  document.getElementById('locataire-nav').innerHTML=renderNav(['accueil','Accueil','quittances','Quittances','infos','Mon appart','contact','Contact'],'infos','navLocataire');
-  document.getElementById('locataire-content').innerHTML=`<div style="padding:14px;">
-    <div class="card"><div class="card-title">Mon appartement</div>
-      <div class="row"><span class="row-label">Appartement</span><span class="row-val">${session.appt}</span></div>
-      <div class="row"><span class="row-label">Immeuble</span><span class="row-val">Immeuble 2i</span></div>
-      <div class="row"><span class="row-label">Adresse</span><span class="row-val">Palmeraies, Cocody / Abidjan</span></div>
-      <div class="row"><span class="row-label">Bail</span><span class="row-val">12 mois renouvelable</span></div>
+// ═══════════════ PORTAIL LOCATAIRE ════════════════
+async function chargerPortailLogin() {
+  document.getElementById('portail-content').innerHTML = `<div style="padding:24px;">
+    <div class="card">
+      <div class="modal-title">Accès locataire</div>
+      <div class="form-group"><label class="form-label">Identifiant</label><input type="text" id="p-id" placeholder="Ex: loc_m1"></div>
+      <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" id="p-mdp"></div>
+      <div id="p-err" style="color:var(--red);font-size:13px;margin-bottom:10px;display:none;"></div>
+      <button class="btn-primary" onclick="connecterLocataire()">Accéder</button>
     </div>
-    <div class="card"><div class="card-title">Règlement intérieur</div>
-      <div style="font-size:13px;color:var(--gray-600);line-height:1.9;">
-        <p>• Loyer dû le 1er de chaque mois</p>
-        <p>• Retard : pénalités de 10%</p>
-        <p>• Préavis de départ : 1 mois minimum</p>
-        <p>• Calme obligatoire entre 22h et 7h</p>
-      </div>
-    </div>
-    <button class="logout" onclick="seDeconnecter()">Se déconnecter</button>
   </div>`;
 }
 
-function chargerContactLoc() {
-  document.getElementById('locataire-nav').innerHTML=renderNav(['accueil','Accueil','quittances','Quittances','infos','Mon appart','contact','Contact'],'contact','navLocataire');
-  document.getElementById('locataire-content').innerHTML=`<div style="padding:14px;">
-    <div class="card"><div class="card-title">Direction</div>
-      <div class="row"><span class="row-label">Email</span><span class="row-val" style="color:var(--blue);">immeuble2i.abidjan@gmail.com</span></div>
+async function connecterLocataire() {
+  const id  = document.getElementById('p-id').value.trim();
+  const mdp = document.getElementById('p-mdp').value.trim();
+  const r   = await get('getPortail', { id, mdp });
+  if (r.success) {
+    session = { type:'locataire', id:r.idLoc, nom:r.nom, appt:r.appt };
+    document.getElementById('portail-nom').textContent = r.nom + ' — Appt ' + r.appt;
+    chargerPortailDashboard();
+  } else {
+    document.getElementById('p-err').textContent = 'Identifiants incorrects.';
+    document.getElementById('p-err').style.display = 'block';
+  }
+}
+
+async function chargerPortailDashboard() {
+  const r    = await get('getHistorique', { id:session.id });
+  const hist = r.data || [];
+  const today= new Date();
+  const slugMois = String(today.getFullYear())+String(today.getMonth()+1).padStart(2,'0');
+  const payeMois = hist.find(p=>p.moisSlug===slugMois);
+
+  let h = `<div style="padding:14px;">
+    <div class="card ${payeMois?'':'card-red'}" style="border-left:4px solid ${payeMois?'var(--green)':'var(--red)'};">
+      <div style="font-size:13px;font-weight:600;color:${payeMois?'var(--green)':'var(--red)'};">
+        ${payeMois?'✅ Loyer du mois payé':'⚠ Loyer du mois en attente'}
+      </div>
+      ${payeMois?`<div style="font-size:12px;color:var(--gray-500);margin-top:4px;">${fmt(payeMois.montant)} Fr · ${payeMois.mode} · ${payeMois.datePaie}</div>`:''}
     </div>
-    <div class="card"><div class="card-title">Signaler un problème</div>
-      <button class="btn-outline" onclick="openModal('modal-signal')">🔧 &nbsp;Plomberie / Électricité / Climatisation</button>
-      <button class="btn-outline" onclick="openModal('modal-signal')">🚪 &nbsp;Serrure / Porte / Fenêtre</button>
-      <button class="btn-outline" onclick="openModal('modal-signal')">🏢 &nbsp;Parties communes</button>
-      <button class="btn-outline" onclick="openModal('modal-signal')">📋 &nbsp;Autre demande</button>
-    </div>
-    <button class="logout" onclick="seDeconnecter()">Se déconnecter</button>
-  </div>`;
-}
+    <div class="section-title">Historique des paiements</div>`;
 
-async function envoyerSignalement() {
-  const type=document.getElementById('signal-type').value;
-  const desc=document.getElementById('signal-desc').value;
-  const urgence=document.getElementById('signal-urgence').value;
-  if(!desc.trim()) { alert('Veuillez décrire le problème.'); return; }
-  try { await post({action:'signalerProbleme',locataire:session.nom,appt:session.appt,type,desc,urgence}); } catch(e){}
-  document.getElementById('signal-ok').style.display='block';
-  document.getElementById('signal-desc').value='';
-  setTimeout(()=>closeModal('modal-signal'),2500);
-}
-
-// ── UTILS ─────────────────────────────────────────────────────
-function openModal(id) {
-  const ok=document.getElementById('signal-ok');
-  if(ok) ok.style.display='none';
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-async function genererPDFRelance(btn, msgId) {
-  const msg = _messages.find(m => m.id === msgId);
-  if (!msg) { alert('Message introuvable'); return; }
-
-  if (!window.jspdf) {
-    await new Promise((res, rej) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
+  if (!hist.length) {
+    h += `<div class="card" style="text-align:center;color:var(--gray-400);">Aucun paiement enregistré</div>`;
+  } else {
+    hist.reverse().forEach(p => {
+      h += `<div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:14px;font-weight:600;">${slugVersLabel(p.moisSlug)}</div>
+            <div style="font-size:12px;color:var(--gray-500);">${p.datePaie} · ${p.mode}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:15px;font-weight:700;color:var(--green);">${fmt(p.montant)} Fr</div>
+            <button class="btn-violet" style="margin-top:4px;font-size:11px;padding:4px 10px;" onclick="telechargerQuittanceLocataire('${p.moisSlug}')">📄 PDF</button>
+          </div>
+        </div>
+      </div>`;
     });
   }
-
-  btn.textContent = '...'; btn.disabled = true;
-
-  try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const W = 210, mg = 20;
-    let y = 0;
-
-    // EN-TETE 2i Immobilier
-    doc.setFillColor(32, 72, 245);
-    doc.rect(0, 0, W, 32, 'F');
-    try { doc.addImage(LOGO_B64, 'PNG', mg, 4, 22, 12); } catch(e) {}
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(15); doc.setFont('helvetica','bold');
-    doc.text('2i Immobilier', mg+25, 13);
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.text("Palmeraies, Cocody / Abidjan, Cote d'Ivoire", mg+25, 19);
-    doc.text('immeuble2i.abidjan@gmail.com', mg+25, 25);
-    doc.setTextColor(188,210,255); doc.setFontSize(7);
-    doc.text('Ref. ' + (msg.id||'').substring(0,10), W-mg, 28, {align:'right'});
-
-    y = 44;
-
-    // EXPEDITEUR gauche
-    doc.setFillColor(248,250,255);
-    doc.rect(mg, y, 78, 30, 'F');
-    doc.setDrawColor(32,72,245); doc.setLineWidth(0.8);
-    doc.line(mg, y, mg, y+30);
-    doc.setTextColor(148,163,184); doc.setFontSize(7); doc.setFont('helvetica','bold');
-    doc.text('EXPEDITEUR', mg+3, y+6);
-    doc.setTextColor(15,23,42); doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('2i Immobilier', mg+3, y+13);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(71,85,105);
-    doc.text('Mme Diaby Djeneba & M. Musandji N. Roger', mg+3, y+19);
-    doc.text('Palmeraies, Cocody / Abidjan', mg+3, y+25);
-
-    // DESTINATAIRE droite
-    doc.setFillColor(248,250,255);
-    doc.rect(W/2+4, y, 78, 30, 'F');
-    doc.setDrawColor(130,32,245); doc.setLineWidth(0.8);
-    doc.line(W/2+4, y, W/2+4, y+30);
-    doc.setTextColor(148,163,184); doc.setFontSize(7); doc.setFont('helvetica','bold');
-    doc.text('DESTINATAIRE', W/2+7, y+6);
-    doc.setTextColor(15,23,42); doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text(msg.destinataire || '', W/2+7, y+13);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(71,85,105);
-    doc.text('Immeuble 2i - Appartement ' + (msg.appt||''), W/2+7, y+19);
-    doc.text('Palmeraies, Cocody / Abidjan', W/2+7, y+25);
-
-    y += 38;
-
-    // DATE & OBJET
-    doc.setFontSize(9); doc.setTextColor(71,85,105); doc.setFont('helvetica','normal');
-    doc.text('Abidjan, le ' + (msg.date||'').split(' ')[0], W-mg, y, {align:'right'});
-    y += 8;
-
-    doc.setDrawColor(32,72,245); doc.setLineWidth(0.4);
-    doc.line(mg, y, W-mg, y);
-    y += 7;
-
-    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(32,72,245);
-    const objetLines = doc.splitTextToSize('Objet : ' + (msg.objet||''), W-2*mg);
-    doc.text(objetLines, mg, y);
-    y += objetLines.length * 6 + 4;
-
-    doc.setDrawColor(226,232,240); doc.setLineWidth(0.2);
-    doc.line(mg, y, W-mg, y);
-    y += 8;
-
-    // CORPS
-    doc.setTextColor(15,23,42); doc.setFontSize(9.5); doc.setFont('helvetica','normal');
-    const bodyLines = doc.splitTextToSize(msg.message || '', W-2*mg);
-    bodyLines.forEach(function(ligne) {
-      if (y > 258) { doc.addPage(); y = 20; }
-      doc.text(ligne, mg, y);
-      y += 5.5;
-    });
-
-    y += 12;
-    if (y > 240) { doc.addPage(); y = 20; }
-
-    // SIGNATURE
-    doc.setDrawColor(226,232,240); doc.setLineWidth(0.3);
-    doc.line(mg, y, W-mg, y);
-    y += 8;
-
-    doc.setFillColor(248,250,255);
-    doc.rect(mg, y, W-2*mg, 22, 'F');
-    doc.setDrawColor(32,72,245); doc.setLineWidth(0.8);
-    doc.line(mg, y, mg, y+22);
-    doc.setTextColor(32,72,245); doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('La Direction', mg+4, y+8);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(71,85,105);
-    doc.text('2i Immobilier', mg+4, y+14);
-    doc.text('immeuble2i.abidjan@gmail.com', mg+4, y+19);
-
-    // FOOTER
-    doc.setFontSize(7); doc.setTextColor(188,179,245);
-    doc.setDrawColor(238,242,255); doc.setLineWidth(0.3);
-    doc.line(mg, 284, W-mg, 284);
-    doc.text("2i Immobilier - Palmeraies, Cocody / Abidjan, Cote d'Ivoire", mg, 289);
-    doc.text('Ref. ' + (msg.id||'').substring(0,10) + ' | ' + (msg.date||'').split(' ')[0], W-mg, 289, {align:'right'});
-
-    const nomFichier = 'Relance_' + (msg.destinataire||'loc').replace(/\s+/g,'_') + '_' + (msg.date||'').split(' ')[0].replace(/\//g,'-') + '.pdf';
-    doc.save(nomFichier);
-
-    btn.textContent = '✓ OK';
-    setTimeout(() => { btn.textContent = '📄 PDF'; btn.disabled = false; }, 2000);
-  } catch(e) {
-    alert('Erreur : ' + e.message);
-    btn.textContent = '📄 PDF'; btn.disabled = false;
-  }
+  h += `</div>`;
+  document.getElementById('portail-content').innerHTML = h;
 }
 
-// ── PAIEMENT MULTI-MOIS ──────────────────────────────────────
-function openModalMultiMois(row, nom, prenom, loyer, modePaie) {
-  document.getElementById('mm-row').value = row;
-  document.getElementById('mm-loyer').value = loyer;
-  document.getElementById('multimois-titre').textContent = 'Paiement multi-mois — ' + nom + (prenom?' '+prenom:'');
-  // Pré-sélectionner le mode habituel du locataire
-  const sel = document.getElementById('mm-mode');
-  if (modePaie) {
-    for (let i = 0; i < sel.options.length; i++) {
-      if (sel.options[i].value.toUpperCase().replace(/\s+/g,'') === modePaie.toUpperCase().replace(/\s+/g,'')) {
-        sel.selectedIndex = i; break;
-      }
-    }
-  }
-
-  // Générer les 6 derniers mois comme options
-  const MOIS_NOMS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-  const today = new Date();
-  const list = document.getElementById('mm-mois-list');
-  list.innerHTML = '';
-
-  for (let i = -1; i <= 4; i++) {
-    const d = new Date(today.getFullYear(), today.getMonth() - 1 + i, 1);
-    const slug = String(d.getFullYear()) + String(d.getMonth()+1).padStart(2,'0');
-    const lbl = MOIS_NOMS[d.getMonth()] + ' ' + d.getFullYear();
-    const btn = document.createElement('button');
-    btn.className = 'pill pill-blue';
-    btn.style.cssText = 'cursor:pointer;padding:8px 14px;font-size:12px;border:2px solid var(--blue);background:var(--white);';
-    btn.dataset.slug = slug;
-    btn.dataset.lbl = lbl;
-    btn.textContent = lbl;
-    // Mois courant sélectionné par défaut
-    if (i === 0) { btn.style.background = 'var(--blue)'; btn.style.color = '#fff'; btn.dataset.selected = '1'; }
-    btn.onclick = function() {
-      const sel = this.dataset.selected === '1';
-      this.dataset.selected = sel ? '0' : '1';
-      this.style.background = sel ? 'var(--white)' : 'var(--blue)';
-      this.style.color = sel ? 'var(--blue)' : '#fff';
-      updateMultiMoisTotal();
-    };
-    list.appendChild(btn);
-  }
-  // Date par défaut = aujourd'hui
-  const todayStr = new Date().toISOString().split('T')[0];
-  document.getElementById('mm-date').value = todayStr;
-  updateMultiMoisTotal();
-  openModal('modal-multimois');
+async function telechargerQuittanceLocataire(moisSlug) {
+  alert('Quittance '+slugVersLabel(moisSlug)+' — fonctionnalité PDF en cours de déploiement.');
 }
-
-function updateMultiMoisTotal() {
-  const loyer = parseInt(document.getElementById('mm-loyer').value)||0;
-  const btns = document.querySelectorAll('#mm-mois-list button');
-  let count = 0;
-  btns.forEach(b => { if (b.dataset.selected === '1') count++; });
-  document.getElementById('mm-nb-mois').textContent = count + ' mois';
-  document.getElementById('mm-total').textContent = fmt(loyer * count) + ' Fr CFA';
-}
-
-async function validerMultiMois() {
-  const row   = document.getElementById('mm-row').value;
-  const loyer = parseInt(document.getElementById('mm-loyer').value)||0;
-  const mode  = document.getElementById('mm-mode').value;
-  const btns  = document.querySelectorAll('#mm-mois-list button');
-  const moisSelec = [];
-  btns.forEach(b => { if (b.dataset.selected === '1') moisSelec.push({slug:b.dataset.slug, lbl:b.dataset.lbl}); });
-
-  if (!moisSelec.length) { alert('Sélectionne au moins un mois.'); return; }
-
-  const total = loyer * moisSelec.length;
-  const moisLabels = moisSelec.map(m => m.lbl).join(', ');
-  if (!confirm('Valider paiement de ' + fmt(total) + ' Fr CFA\n(' + moisLabels + ') ?')) return;
-
-  closeModal('modal-multimois');
-
-  try {
-    // Récupérer la date saisie
-    const dateInput = document.getElementById('mm-date').value;
-    const dateParts = dateInput ? dateInput.split('-') : [];
-    const dateFmt = dateParts.length === 3 ? dateParts[2]+'/'+dateParts[1]+'/'+dateParts[0] : new Date().toLocaleDateString('fr-FR');
-
-    // 1. Marquer comme payé dans Feuille 1 avec le montant total et les mois
-    await post({
-      action: 'setPaye',
-      row: parseInt(row),
-      paye: true,
-      modePaie: mode,
-      nbMois: moisSelec.length,
-      moisCouverts: moisSelec.map(m => m.slug).join(','),
-      montantTotal: total,
-      datePaiement: dateFmt
-    });
-
-    // 2. Recharger et afficher
-    await new Promise(r => setTimeout(r, 800)); // attendre que WebApp finisse
-    const r = await get('getLocataires');
-    locataires = r.data || [];
-    // Stocker les mois couverts sur le locataire pour la quittance
-    const rowInt = parseInt(row);
-    const locIdx = locataires.findIndex(l => l.row === rowInt);
-    if (locIdx !== -1) {
-      locataires[locIdx].moisCouverts = moisSelec.map(m => m.slug);
-      locataires[locIdx].montantPaye = total;
-      locataires[locIdx].datePaie = dateFmt;
-      locataires[locIdx].modePaie = mode;
-    }
-    chargerPaiements();
-
-    // Feedback
-    setTimeout(() => {
-      const el = document.getElementById('proprio-content');
-      if (el) {
-        const banner = document.createElement('div');
-        banner.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:12px 24px;border-radius:12px;font-weight:600;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.2);';
-        banner.textContent = '✓ ' + moisSelec.length + ' mois enregistrés — ' + fmt(total) + ' Fr CFA';
-        document.body.appendChild(banner);
-        setTimeout(() => banner.remove(), 3000);
-      }
-    }, 300);
-
-  } catch(e) {
-    alert('Erreur: ' + e.message);
-  }
-}
-
-// ── ARCHIVES ─────────────────────────────────────────────────
-async function chargerArchives() {
-  const NAV = renderNav(['paiements','Paiements','archives','Archives','finances','Finances','tresorerie','Trésorerie','messages','Messages','travaux','Travaux','artisans','Artisans'],'archives','navProprio');
-  document.getElementById('proprio-nav').innerHTML = NAV;
-  document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><div class="loading-box"><div class="spinner"></div>Chargement...</div></div>';
-
-  try {
-    const r = await get('getHistoriqueComplet');
-    const data = r.data || {};
-    const moisDispo = r.mois || [];
-
-    const MOIS_NOMS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-
-    let h = '<div style="padding:14px;">';
-
-    // Sélecteur de mois
-    h += '<div class="card" style="margin-bottom:14px;">';
-    h += '<div class="card-title">Historique des paiements</div>';
-    h += '<select id="sel-mois-archive" class="mode-select" style="font-size:13px;padding:9px 12px;width:100%;" onchange="afficherArchiveMois(this.value)">';
-
-    const today = new Date();
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const slug = String(d.getFullYear()) + String(d.getMonth()+1).padStart(2,'0');
-      const lbl = MOIS_NOMS[d.getMonth()] + ' ' + d.getFullYear();
-      h += '<option value="' + slug + '">' + lbl + '</option>';
-    }
-    h += '</select></div>';
-
-    // Tableau de régularité
-    h += '<div class="stitle">Régularité des locataires — 6 derniers mois</div>';
-    h += '<div class="card" style="overflow-x:auto;">';
-
-    const mois6 = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      mois6.push({
-        slug: String(d.getFullYear()) + String(d.getMonth()+1).padStart(2,'0'),
-        lbl: MOIS_NOMS[d.getMonth()].substring(0,3)
-      });
-    }
-
-    // En-tête tableau
-    h += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
-    h += '<thead><tr style="background:var(--gray-100);">';
-    h += '<th style="padding:8px;text-align:left;">Locataire</th>';
-    mois6.forEach(m => {
-      h += '<th style="padding:8px;text-align:center;">' + m.lbl + '</th>';
-    });
-    h += '<th style="padding:8px;text-align:center;">Score</th>';
-    h += '</tr></thead><tbody>';
-
-    // Données par locataire depuis Recettes
-    const recettes = r.recettes || [];
-    locataires.forEach((l, idx) => {
-      const nomComplet = l.nom + (l.prenom?' '+l.prenom:'');
-      h += '<tr style="border-bottom:1px solid var(--gray-100);">';
-      h += '<td style="padding:8px;font-size:12px;font-weight:500;">' + nomComplet + '<br><span style="color:var(--gray-400);font-size:10px;">Appt ' + l.appt + '</span></td>';
-
-      let score = 0;
-      mois6.forEach(m => {
-        // Chercher si paiement ce mois
-        const paye = recettes.some(r2 =>
-          r2.nom && r2.nom.toUpperCase().includes(l.nom.toUpperCase()) &&
-          r2.moisSlug === m.slug
-        );
-        if (paye) score++;
-        h += '<td style="padding:8px;text-align:center;">';
-        h += paye ? '<span style="color:var(--green);font-size:16px;">✓</span>' : '<span style="color:var(--red);font-size:16px;">✗</span>';
-        h += '</td>';
-      });
-
-      const pct = Math.round(score/6*100);
-      const couleur = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
-      h += '<td style="padding:8px;text-align:center;font-weight:700;color:' + couleur + ';">' + pct + '%</td>';
-      h += '</tr>';
-    });
-
-    h += '</tbody></table></div>';
-    h += '<button class="logout" onclick="seDeconnecter()">Se déconnecter</button></div>';
-    document.getElementById('proprio-content').innerHTML = h;
-
-  } catch(e) {
-    document.getElementById('proprio-content').innerHTML = '<div style="padding:14px;"><p style="color:var(--red);">Erreur: '+e.message+'</p></div>';
-  }
-}
-
-function afficherArchiveMois(slug) {
-  // TODO: filtrer les paiements par mois sélectionné
-  console.log('Mois sélectionné:', slug);
-}
-
-function openModalNouveauMessage() {
-  // Remplir le select destinataires
-  const sel = document.getElementById('msg-dest');
-  sel.innerHTML = locataires.map(l =>
-    `<option value="${l.row}" data-appt="${l.appt}" data-email="${l.email}">${l.nom}${l.prenom?' '+l.prenom:''} - Appt ${l.appt}</option>`
-  ).join('');
-  document.getElementById('msg-objet').value = '';
-  document.getElementById('msg-texte').value = '';
-  openModal('modal-nouveau-message');
-}
-
-async function envoyerNouveauMessage() {
-  const sel = document.getElementById('msg-dest');
-  const opt = sel.options[sel.selectedIndex];
-  const appt  = opt.dataset.appt;
-  const email = opt.dataset.email;
-  const dest  = opt.text.split(' - ')[0];
-  const type  = document.getElementById('msg-type').value;
-  const objet = document.getElementById('msg-objet').value;
-  const texte = document.getElementById('msg-texte').value;
-  if (!objet || !texte) { alert("Veuillez remplir l'objet et le message."); return; }
-  closeModal('modal-nouveau-message');
-  await post({ action:'envoyerMessage', type, expediteur:'Propriétaire',
-    destinataire:dest, appt, objet, message:texte, emailDest:email });
-  chargerMessages();
-}
-
-function openModalRepondre(appt, dest, objet) {
-  document.getElementById('rep-appt').value = appt;
-  document.getElementById('rep-dest').value = dest;
-  document.getElementById('modal-repondre-titre').textContent = 'Répondre à ' + dest;
-  document.getElementById('rep-texte').value = '';
-  openModal('modal-repondre');
-}
-
-async function envoyerReponse() {
-  const appt  = document.getElementById('rep-appt').value;
-  const dest  = document.getElementById('rep-dest').value;
-  const texte = document.getElementById('rep-texte').value;
-  if (!texte) { alert('Veuillez saisir un message.'); return; }
-  // Trouver email du destinataire
-  const loc = locataires.find(l => l.appt === appt);
-  const email = loc ? loc.email : '';
-  closeModal('modal-repondre');
-  await post({ action:'envoyerMessage', type:'Réponse propriétaire',
-    expediteur:'Propriétaire', destinataire:dest, appt,
-    objet:'Re: Message Immeuble 2i', message:texte, emailDest:email });
-  chargerMessages();
-}
-
-function seDeconnecter() {
-  session=null; locataires=[]; travaux=[]; artisans=[];
-  document.getElementById('screen-proprio').style.display='none';
-  document.getElementById('screen-locataire').style.display='none';
-  document.getElementById('screen-login').style.display='block';
-  document.getElementById('user-badge').style.display='none';
-  document.getElementById('sync-btn').style.display='none';
-  document.getElementById('topbar-sub').textContent='Palmeraies, Cocody / Abidjan';
-  document.getElementById('input-mdp').value='';
-  document.getElementById('login-error').style.display='none';
-}
-
-document.querySelectorAll('.modal-overlay').forEach(o=>{
-  o.addEventListener('click',function(e){ if(e.target===this) closeModal(this.id); });
-});
-document.getElementById('input-mdp').addEventListener('keydown',e=>{ if(e.key==='Enter') seConnecter(); });
 </script>
 </body>
 </html>
