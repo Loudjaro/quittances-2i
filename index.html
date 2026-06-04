@@ -143,7 +143,14 @@ button:active{opacity:.7;}
       </div>
       <div class="form-group">
         <label class="form-label">Mot de passe</label>
-        <input type="password" id="login-mdp" placeholder="••••••••" autocomplete="current-password">
+        <div style="position:relative;">
+          <input type="password" id="login-mdp" placeholder="••••••••" autocomplete="current-password" style="padding-right:42px;">
+          <button type="button" onclick="toggleMdp()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;color:var(--gray-400);font-size:16px;padding:0;border-radius:0;" id="btn-eye">👁</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <input type="checkbox" id="remember-me" style="width:16px;height:16px;cursor:pointer;">
+        <label for="remember-me" style="font-size:13px;color:var(--gray-500);cursor:pointer;">Se souvenir de moi</label>
       </div>
       <div id="login-err" style="color:var(--red);font-size:13px;margin-bottom:10px;display:none;"></div>
       <button class="btn-primary" onclick="seConnecter()">Se connecter</button>
@@ -382,6 +389,25 @@ function showScreen(id) {
 }
 
 // ═══════════════ LOGIN ════════════════
+function toggleMdp() {
+  const inp = document.getElementById('login-mdp');
+  const btn = document.getElementById('btn-eye');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+
+function chargerIdentifiantsSauvegardes() {
+  try {
+    const saved = localStorage.getItem('2i_session');
+    if (saved) {
+      const d = JSON.parse(saved);
+      if (d.id)  document.getElementById('login-id').value  = d.id;
+      if (d.mdp) document.getElementById('login-mdp').value = d.mdp;
+      document.getElementById('remember-me').checked = true;
+    }
+  } catch(e) {}
+}
+
 async function seConnecter() {
   const id  = document.getElementById('login-id').value.trim();
   const mdp = document.getElementById('login-mdp').value.trim();
@@ -391,6 +417,12 @@ async function seConnecter() {
   const r = await get('authProprio', { id, mdp });
   if (r.success) {
     session = { type:'proprio', nom:r.nom, id };
+    // Mémoriser si demandé
+    if (document.getElementById('remember-me').checked) {
+      try { localStorage.setItem('2i_session', JSON.stringify({ id, mdp })); } catch(e) {}
+    } else {
+      try { localStorage.removeItem('2i_session'); } catch(e) {}
+    }
     document.getElementById('proprio-nom').textContent = r.nom;
     showScreen('screen-proprio');
     await chargerDonnees();
@@ -1130,6 +1162,8 @@ async function chargerPortailDashboard() {
 async function telechargerQuittanceLocataire(moisSlug) {
   alert('Quittance '+slugVersLabel(moisSlug)+' — fonctionnalité PDF en cours de déploiement.');
 }
+// Charger identifiants sauvegardés au démarrage
+window.addEventListener('DOMContentLoaded', chargerIdentifiantsSauvegardes);
 </script>
 </body>
 </html>
