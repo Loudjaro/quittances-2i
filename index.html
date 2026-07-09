@@ -378,6 +378,12 @@ async function actualiser(){
 }
 
 // ═══════ NAV ═══════
+function soldeBadge(solde){
+  if(solde>0)return '<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--red-light);color:var(--red);">Dette '+fmt(solde)+' Fr</span>';
+  if(solde<0)return '<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--green-light);color:var(--green);">Avance '+fmt(-solde)+' Fr</span>';
+  return '<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--gray-100);color:var(--gray-500);">À jour</span>';
+}
+
 const NAV_ITEMS=[
   {id:'paiements',label:'Paiements'},
   {id:'archives',label:'Archives'},{id:'finances',label:'Finances'},
@@ -420,7 +426,8 @@ function chargerPaiements(){
         <div class="stat-sub" style="color:var(--gray-500);">${payes.length}/${locataires.length} locataires</div></div>
     </div>
 
-    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>`;
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    ${totalDettes>0?'<div class="card" style="background:var(--red-light);border-left:4px solid var(--red);padding:12px;"><div style="font-size:13px;color:var(--red);font-weight:600;">Impayés cumulés : '+fmt(totalDettes)+' Fr CFA</div></div>':''}`;
 
   if(payes.length){
     h+=`<div class="section-title">Payés ce mois (${payes.length})</div>`;
@@ -433,7 +440,7 @@ function chargerPaiements(){
             <div><div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div>
             <div class="loc-sub">Appt ${l.appt} · ${fmt(l.montantPaye)} Fr${nbM>1?' · '+nbM+' mois':''} · ${l.datePaie}</div></div>
           </div>
-          <span class='pill pill-green'>Payé</span>
+          ${soldeBadge(l.solde)}
         </div>
         <div class="loc-actions">
           <button class="btn-violet" onclick="genererQuittance('${l.id}')">📄 Quittance</button>
@@ -454,7 +461,7 @@ function chargerPaiements(){
             <div><div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div>
             <div class="loc-sub">Appt ${l.appt} · Loyer ${fmt(l.loyer)} Fr · ${l.frequence}</div></div>
           </div>
-          <span class='pill pill-green'>Payé</span>
+          ${soldeBadge(l.solde)}
         </div>
         <div class="loc-actions">
           <button class="btn-blue" onclick="ouvrirPaiement('${l.id}')">💰 Paiement</button>
@@ -486,12 +493,21 @@ function ouvrirPaiement(idLoc){
   const today=new Date();
   const list=document.getElementById('pm-mois-list');
   list.innerHTML='';
-  for(let i=5;i>=-2;i--){
+  // 6 mois en arrière + mois courant + jusqu'à décembre de l'année + 3 mois suivants
+  const finAnnee = 12 - today.getMonth() - 1; // mois restants dans l'année
+  const moisAvant = 6;
+  const moisApres = finAnnee + 3; // fin d'année + 3 mois de l'année suivante
+  for(let i=moisAvant;i>=-moisApres;i--){
     const d=new Date(today.getFullYear(),today.getMonth()-i,1);
     const slug=String(d.getFullYear())+String(d.getMonth()+1).padStart(2,'0');
     const checked=(i===0)?' checked':'';
+    const isPast=i>0;
+    const isFuture=i<0;
     list.innerHTML+=`<label class="mois-checkbox"><input type="checkbox" class="mois-cb" value="${slug}"${checked} onchange="majMontantPm()">
-      <div style="font-size:14px;font-weight:500;">${MOIS[d.getMonth()]} ${d.getFullYear()}</div></label>`;
+      <div><div style="font-size:14px;font-weight:500;">${MOIS[d.getMonth()]} ${d.getFullYear()}</div>
+      ${isPast?'<div style="font-size:10px;color:var(--red);">Mois passé</div>':''}
+      ${isFuture?'<div style="font-size:10px;color:var(--blue);">Avance</div>':''}
+      </div></label>`;
   }
   majMontantPm();
   openModal('modal-paiement');
@@ -540,7 +556,7 @@ async function chargerComptes(){
           <div class="loc-sub">Appt ${l.appt} · Loyer ${fmt(l.loyer)} Fr</div></div>
         </div>
         <div style="text-align:right;">
-          <span class='pill pill-green'>Payé</span>
+          ${soldeBadge(l.solde)}
           <div style="margin-top:6px;"><button class="btn-violet" style="font-size:11px;padding:4px 10px;" onclick="voirCompte('${l.id}')">Détail</button></div>
         </div>
       </div>
@@ -669,44 +685,74 @@ function genererQuittance(idLoc){
   doc.text(fmt(l.montantPaye)+' Fr CFA',W-margin-3,y0+7,{align:'right'});
   y0+=14;
 
-  // ═══ SITUATION DU COMPTE (uniquement si dette ou solde partiel) ═══
+  // ═══ SITUATION DU COMPTE ═══
+  // Dette antérieure = solde AVANT ce paiement (solde actuel + montant payé - loyers de la période)
   const loyerDu = l.loyer * nbM;
-  const soldeRestant = loyerDu - l.montantPaye; // >0 = reste à payer, <0 = trop payé, 0 = ok
+  const soldeActuel = l.solde || 0;
+  const detteAnterieure = soldeActuel + l.montantPaye - loyerDu;
+  // soldeRestant = ce qui reste à payer APRÈS ce paiement = solde actuel
+  const soldeRestant = soldeActuel;
 
-  if (soldeRestant !== 0) {
+  const showSituation = detteAnterieure > 0 || soldeRestant !== 0;
+
+  if (showSituation) {
     doc.setFillColor(243,244,246);doc.rect(margin,y0,W-2*margin,8,'F');
     doc.setTextColor(26,86,219);doc.setFont(undefined,'bold');doc.setFontSize(10);
     doc.text('SITUATION DU COMPTE',margin+3,y0+5.5);
     y0 += 10;
     doc.setFont(undefined,'normal');doc.setFontSize(9);doc.setTextColor(55,65,81);
 
-    doc.text('Loyer dû pour la période',margin+3,y0+5);
+    // Report dette antérieure (seulement si elle existe)
+    if (detteAnterieure > 0) {
+      doc.setTextColor(224,36,36);
+      doc.text('Report solde antérieur (impayé)',margin+3,y0+5);
+      doc.text(fmt(detteAnterieure)+' Fr',W-margin-3,y0+5,{align:'right'});
+      doc.setTextColor(55,65,81);
+      y0 += 7;
+      doc.setDrawColor(229,231,235);doc.setLineWidth(0.2);doc.line(margin,y0,W-margin,y0);
+    }
+
+    // Loyer de la période
+    doc.text('Loyer dû pour la période ('+nbM+' mois)',margin+3,y0+5);
     doc.text(fmt(loyerDu)+' Fr',W-margin-3,y0+5,{align:'right'});
     y0 += 7;
     doc.setDrawColor(229,231,235);doc.setLineWidth(0.2);doc.line(margin,y0,W-margin,y0);
 
-    doc.text('Paiement reçu le '+fmtDate(l.datePaie),margin+3,y0+5);
-    doc.setTextColor(5,122,85);
-    doc.text('- '+fmt(l.montantPaye)+' Fr',W-margin-3,y0+5,{align:'right'});
+    // Total dû
+    const totalDu = (detteAnterieure > 0 ? detteAnterieure : 0) + loyerDu;
+    doc.setFont(undefined,'bold');
+    doc.text('Total dû',margin+3,y0+5);
+    doc.text(fmt(totalDu)+' Fr',W-margin-3,y0+5,{align:'right'});
+    doc.setFont(undefined,'normal');
     y0 += 7;
     doc.setDrawColor(229,231,235);doc.line(margin,y0,W-margin,y0);
 
+    // Paiement reçu
+    doc.setTextColor(5,122,85);
+    doc.text('Paiement reçu le '+fmtDate(l.datePaie),margin+3,y0+5);
+    doc.text('- '+fmt(l.montantPaye)+' Fr',W-margin-3,y0+5,{align:'right'});
+    doc.setTextColor(55,65,81);
+    y0 += 7;
+    doc.setDrawColor(26,86,219);doc.setLineWidth(0.4);doc.line(margin,y0,W-margin,y0);
+
+    // Solde final
     y0 += 3;
     doc.setFont(undefined,'bold');doc.setFontSize(10);
     if (soldeRestant > 0) {
       doc.setTextColor(224,36,36);
-      doc.text('RESTE À PAYER : '+fmt(soldeRestant)+' Fr CFA',W-margin-3,y0+5,{align:'right'});
-      doc.setTextColor(55,65,81);doc.setFont(undefined,'normal');doc.setFontSize(9);
       doc.text('Solde au '+dateFR()+' :',margin+3,y0+5);
+      doc.text('RESTE DÛ : '+fmt(soldeRestant)+' Fr CFA',W-margin-3,y0+5,{align:'right'});
+    } else if (soldeRestant < 0) {
+      doc.setTextColor(5,122,85);
+      doc.text('Solde au '+dateFR()+' :',margin+3,y0+5);
+      doc.text('AVANCE : '+fmt(-soldeRestant)+' Fr CFA',W-margin-3,y0+5,{align:'right'});
     } else {
       doc.setTextColor(5,122,85);
-      doc.text('AVANCE : '+fmt(-soldeRestant)+' Fr CFA',W-margin-3,y0+5,{align:'right'});
-      doc.setTextColor(55,65,81);doc.setFont(undefined,'normal');doc.setFontSize(9);
       doc.text('Solde au '+dateFR()+' :',margin+3,y0+5);
+      doc.text('COMPTE SOLDÉ',W-margin-3,y0+5,{align:'right'});
     }
     y0 += 14;
   } else {
-    // Paiement exact — juste une mention simple
     y0 += 2;
     doc.setFontSize(9);doc.setFont(undefined,'bold');doc.setTextColor(5,122,85);
     doc.text('Compte à jour — aucun solde dû.',margin+3,y0+5);
@@ -829,7 +875,7 @@ function chargerLettres(){
           <div><div class="loc-nom">${l.nom}${l.prenom?' '+l.prenom:''}</div>
           <div class="loc-sub">Appt ${l.appt}</div></div>
         </div>
-        <span class='pill pill-green'>Payé</span>
+        ${soldeBadge(l.solde)}
       </div>
       <button class="btn-amber" style="width:100%;" onclick="ouvrirLettre('${l.id}')">✉️ Générer une lettre</button>
     </div>`;
