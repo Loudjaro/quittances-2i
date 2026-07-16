@@ -466,6 +466,7 @@ function chargerPaiements(){
         </div>
         <div class="loc-actions">
           <button class="btn-blue" onclick="ouvrirPaiement('${l.id}')">💰 Paiement</button>
+          <button class="btn-amber" onclick="genererAvisEcheance('${l.id}')">📋 Avis d'échéance</button>
         </div>
       </div>`;
     });
@@ -558,7 +559,10 @@ async function chargerComptes(){
         </div>
         <div style="text-align:right;">
           ${soldeBadge(l.solde)}
-          <div style="margin-top:6px;"><button class="btn-violet" style="font-size:11px;padding:4px 10px;" onclick="voirCompte('${l.id}')">Détail</button></div>
+          <div style="margin-top:6px;display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn-violet" style="font-size:11px;padding:4px 10px;" onclick="voirCompte('${l.id}')">Détail</button>
+            <button class="btn-amber" style="font-size:11px;padding:4px 10px;" onclick="genererAvisEcheance('${l.id}')">📋 Avis</button>
+          </div>
         </div>
       </div>
       <div id="compte-${l.id}"></div>
@@ -778,94 +782,144 @@ function genererQuittance(idLoc){
   doc.save('Quittance_'+l.nom+'_'+(l.moisCouverts[0]||slugDuMois())+'.pdf');
 }
 
-// ═══════ AVIS D'ÉCHÉANCE (modèle Batigère) ═══════
-async function genererAvisEcheance(idLoc){
+// ═══════ AVIS D'ÉCHÉANCE ═══════
+function genererAvisEcheance(idLoc){
   const l=locataires.find(x=>x.id===idLoc);
   if(!l)return;
-  // Ouvrir l'onglet PENDANT le geste utilisateur (sinon iOS bloque),
-  // le PDF y sera injecté une fois les données du compte reçues
-  const win = window.open('', '_blank');
-  if (win) { try { win.document.write('<p style="font-family:sans-serif;padding:20px;">Préparation de l\'avis d\'échéance…</p>'); } catch(e){} }
-  const rc=await get('getCompte',{idLoc});
-  const compte=rc.data||{ledger:[],solde:0};
-  const soldeCompte=compte.solde;
-  const echeanceMois=l.loyer;
-  const montantARegler=Math.max(0,soldeCompte);
 
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4'});
-  const W=210,margin=15;
-  const moisCourantLabel=MOIS[new Date().getMonth()]+' '+new Date().getFullYear();
+  const W=210, margin=20;
 
-  pdfHeader(doc,W,margin);
-  doc.setTextColor(17,24,39);doc.setFontSize(15);doc.setFont(undefined,'bold');
-  doc.text("AVIS D'ÉCHÉANCE",margin,55);
-  doc.setFontSize(10);doc.setFont(undefined,'normal');doc.setTextColor(107,114,128);
-  doc.text(moisCourantLabel.toUpperCase(),margin,62);
-  doc.setDrawColor(26,86,219);doc.setLineWidth(0.5);doc.line(margin,66,W-margin,66);
+  const now=new Date();
+  const moisSlug=slugDuMois();
+  const moisLabel=MOIS[now.getMonth()]+' '+now.getFullYear();
+  const moisTitre=moisLabel.replace(/^./,c=>c.toUpperCase());
+  const echeanceStr='05/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
 
-  doc.setFontSize(10);doc.setTextColor(17,24,39);doc.setFont(undefined,'bold');
-  doc.text(l.nom+(l.prenom?' '+l.prenom:''),W-margin,75,{align:'right'});
-  doc.setFont(undefined,'normal');doc.setFontSize(9);doc.setTextColor(107,114,128);
-  doc.text('Appartement '+l.appt+' — Immeuble 2i',W-margin,81,{align:'right'});
-  doc.text('Palmeraies, Cocody — Abidjan',W-margin,86,{align:'right'});
+  const navy=[28,44,74];
+  const gris=[130,130,130];
+  const grisClair=[200,200,200];
+  const noir=[30,30,30];
+  const rouge=[196,60,60];
+  const vert=[40,160,80];
 
-  // Bloc montant à régler
-  const mY=96;
-  doc.setFillColor(26,86,219);doc.rect(margin,mY,W-2*margin,18,'F');
-  doc.setTextColor(255,255,255);doc.setFont(undefined,'bold');doc.setFontSize(12);
-  doc.text('MONTANT À RÉGLER',margin+4,mY+11);
-  doc.setFontSize(16);
-  doc.text(fmt(Math.max(montantARegler,echeanceMois))+' Fr CFA',W-margin-4,mY+11.5,{align:'right'});
+  const loyerMois=l.loyer;
+  const soldeActuel=l.solde||0;
+  const report=soldeActuel-loyerMois; // >0 : dette antérieure ; <0 : avance antérieure
+  const totalARegler=Math.max(0,soldeActuel);
 
-  let y0=mY+26;
-  doc.setFontSize(10);doc.setTextColor(55,65,81);doc.setFont(undefined,'normal');
-  doc.text('Montant de cette échéance ('+moisCourantLabel+')',margin+3,y0);
-  doc.text(fmt(echeanceMois)+' Fr',W-margin-3,y0,{align:'right'});
-  y0+=7;
-  doc.text('Solde de votre compte au '+dateFR(),margin+3,y0);
-  doc.setTextColor(soldeCompte>0?224:5,soldeCompte>0?36:122,soldeCompte>0?36:85);
-  doc.text((soldeCompte>0?fmt(soldeCompte):soldeCompte<0?'− '+fmt(-soldeCompte):'0')+' Fr',W-margin-3,y0,{align:'right'});
-  doc.setTextColor(55,65,81);
-  y0+=10;
-  doc.setFontSize(8);doc.setTextColor(150,150,150);
-  doc.text("Il est possible qu'un versement récent n'ait pas encore été comptabilisé. Dans ce cas, ne pas tenir compte de ce rappel.",margin,y0);
-  y0+=10;
+  // ═══ HEADER ═══
+  try{doc.addImage(LOGO_NAVY,'PNG',margin,16,30,30);}catch(e){}
+  doc.setTextColor(...navy);doc.setFontSize(9);doc.setFont(undefined,'bold');
+  doc.text("AVIS D'ÉCHÉANCE",W-margin,22,{align:'right'});
+  doc.setFontSize(18);doc.setFont(undefined,'italic');
+  doc.text(moisTitre,W-margin,32,{align:'right'});
 
-  // Situation du compte (15 dernières opérations)
-  doc.setFillColor(243,244,246);doc.rect(margin,y0,W-2*margin,8,'F');
-  doc.setTextColor(26,86,219);doc.setFont(undefined,'bold');doc.setFontSize(10);
-  doc.text('SITUATION DU COMPTE',margin+3,y0+5.5);
-  y0+=10;
-  doc.setFontSize(8);doc.setFont(undefined,'bold');doc.setTextColor(107,114,128);
-  doc.text('Date',margin+3,y0+4);
-  doc.text('Opération',margin+30,y0+4);
-  doc.text('Débit',W-margin-45,y0+4,{align:'right'});
-  doc.text('Crédit',W-margin-3,y0+4,{align:'right'});
-  y0+=6;
-  doc.setFont(undefined,'normal');doc.setFontSize(8);
-  compte.ledger.slice(-14).reverse().forEach((op,i)=>{
-    if(i%2===0){doc.setFillColor(249,250,251);doc.rect(margin,y0,W-2*margin,6,'F');}
-    doc.setTextColor(55,65,81);
-    doc.text(op.date,margin+3,y0+4);
-    doc.text(op.libelle.substring(0,45),margin+30,y0+4);
-    if(op.debit)doc.text(fmt(op.debit),W-margin-45,y0+4,{align:'right'});
-    if(op.credit)doc.text(fmt(op.credit),W-margin-3,y0+4,{align:'right'});
-    y0+=6;
-  });
-  y0+=3;
-  doc.setFont(undefined,'bold');doc.setFontSize(9);
-  doc.setTextColor(soldeCompte>0?224:5,soldeCompte>0?36:122,soldeCompte>0?36:85);
-  doc.text('Solde au '+dateFR()+' : '+(soldeCompte>0?fmt(soldeCompte)+' Fr dû':soldeCompte<0?fmt(-soldeCompte)+' Fr d\'avance':'compte à jour'),W-margin-3,y0+4,{align:'right'});
+  let y=50;
+  doc.setDrawColor(...grisClair);doc.setLineWidth(0.3);
+  doc.line(margin,y,W-margin,y);
 
-  pdfLegal(doc,margin,Math.max(y0+14,262));
-  doc.setFontSize(7.5);doc.setTextColor(180,180,180);
-  doc.text('Avis émis le '+dateFR()+' | Réf. '+l.appt+'-'+slugDuMois(),margin,290);
-  if (win && !win.closed) {
-    win.location.href = doc.output('bloburl');
-  } else {
-    doc.save('Avis_echeance_'+l.nom+'_'+slugDuMois()+'.pdf');
+  // ═══ BAILLEUR / LOCATAIRE ═══
+  y+=10;
+  doc.setFontSize(8);doc.setFont(undefined,'bold');doc.setTextColor(...gris);
+  doc.text('BAILLEUR',margin,y);
+  doc.text('LOCATAIRE',W/2+5,y);
+
+  y+=7;
+  doc.setFontSize(11);doc.setFont(undefined,'bold');doc.setTextColor(...noir);
+  doc.text('Madame Diaby Djeneba',margin,y);
+  doc.text(l.nom+(l.prenom?' '+l.prenom:''),W/2+5,y);
+
+  y+=6;
+  doc.setFontSize(9);doc.setFont(undefined,'normal');doc.setTextColor(...gris);
+  doc.text('2i Immobilier SCI',margin,y);
+  doc.text('Appartement '+l.appt+' — Immeuble 2i',W/2+5,y);
+
+  y+=5;
+  doc.text("Palmeraies, Cocody — Abidjan, Côte d'Ivoire",margin,y);
+
+  // ═══ TABLEAU DÉSIGNATION ═══
+  y+=18;
+  doc.setFontSize(8);doc.setFont(undefined,'bold');doc.setTextColor(...gris);
+  doc.text('DÉSIGNATION',margin,y);
+  doc.text('MONTANT (FCFA)',W-margin,y,{align:'right'});
+  y+=2;
+  doc.setDrawColor(...grisClair);doc.line(margin,y,W-margin,y);
+
+  y+=8;
+  doc.setFontSize(11);doc.setFont(undefined,'normal');doc.setTextColor(...noir);
+  doc.text('Loyer — '+moisLabel,margin,y);
+  doc.text(fmt(loyerMois),W-margin,y,{align:'right'});
+
+  if(report>0.5){
+    y+=7;
+    doc.setTextColor(...rouge);
+    doc.text('Report solde antérieur (impayé)',margin,y);
+    doc.text(fmt(report),W-margin,y,{align:'right'});
+    doc.setTextColor(...noir);
+  } else if(report<-0.5){
+    y+=7;
+    doc.setTextColor(...vert);
+    doc.text('Avance antérieure déduite',margin,y);
+    doc.text('- '+fmt(-report),W-margin,y,{align:'right'});
+    doc.setTextColor(...noir);
   }
+
+  y+=4;
+  doc.setDrawColor(...grisClair);doc.line(margin,y,W-margin,y);
+
+  // ═══ BLOC TOTAL — navy foncé ═══
+  y+=8;
+  doc.setFillColor(...navy);
+  doc.roundedRect(margin,y,W-2*margin,20,3,3,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(9);doc.setFont(undefined,'bold');
+  doc.text(totalARegler>0?'TOTAL À RÉGLER':'SOLDE DE VOTRE COMPTE',margin+8,y+12);
+  doc.setFontSize(20);doc.setFont(undefined,'bold');
+  const totalAffiche=totalARegler>0?fmt(totalARegler):fmt(-soldeActuel);
+  doc.text(totalAffiche+' FCFA',W-margin-8,y+13,{align:'right'});
+
+  // ═══ ÉCHÉANCE / STATUT ═══
+  y+=30;
+  if(totalARegler>0){
+    doc.setFillColor(...rouge);doc.circle(margin+2,y-1.5,1.5,'F');
+    doc.setTextColor(...rouge);doc.setFontSize(10);doc.setFont(undefined,'bold');
+    doc.text('Montant attendu avant le '+echeanceStr,margin+7,y);
+  } else {
+    doc.setFillColor(...vert);doc.circle(margin+2,y-1.5,1.5,'F');
+    doc.setTextColor(...vert);doc.setFontSize(10);doc.setFont(undefined,'bold');
+    doc.text('Compte en votre faveur — aucun montant à régler',margin+7,y);
+  }
+  doc.setTextColor(...gris);doc.setFontSize(9);doc.setFont(undefined,'normal');
+  doc.text('Échéance : '+echeanceStr,W-margin,y,{align:'right'});
+
+  // ═══ NOTE ═══
+  y+=12;
+  doc.setFontSize(8);doc.setTextColor(...gris);doc.setFont(undefined,'normal');
+  doc.text("Merci de bien vouloir régler ce montant auprès de la direction de l'immeuble avant la date d'échéance.",margin,y);
+  doc.text("Si un versement récent n'a pas encore été comptabilisé, veuillez ne pas tenir compte de ce rappel.",margin,y+4);
+
+  // ═══ MENTIONS LÉGALES ═══
+  y=Math.max(y+18,200);
+  doc.setFontSize(8);doc.setFont(undefined,'normal');doc.setTextColor(...gris);
+  doc.text("Document émis conformément à la loi ivoirienne n°60-315 du 21/09/1960 relative aux rapports entre bailleurs et locataires,",margin,y);
+  doc.text("et aux dispositions du Code Civil applicable en Côte d'Ivoire.",margin,y+4);
+
+  // ═══ FOOTER ═══
+  const footY=260;
+  doc.setDrawColor(...grisClair);doc.setLineWidth(0.3);
+  doc.line(margin,footY,W-margin,footY);
+
+  doc.setFontSize(8);doc.setTextColor(...gris);doc.setFont(undefined,'normal');
+  doc.text('Réf. '+l.appt+'-'+moisSlug+' | Généré le '+dateFR(),margin,footY+8);
+
+  doc.setTextColor(...navy);doc.setFontSize(11);doc.setFont(undefined,'italic');
+  doc.text('Mme Diaby Djeneba',W-margin,footY+6,{align:'right'});
+  doc.setFontSize(8);doc.setFont(undefined,'bold');
+  doc.text('DIRECTION IMMEUBLE 2I',W-margin,footY+11,{align:'right'});
+
+  doc.save('Avis_echeance_'+l.nom+'_'+moisSlug+'.pdf');
 }
 
 // ═══════ LETTRES ═══════
